@@ -48,12 +48,17 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = device_manager.send(args, kwargs)
         else:
             tensor_list = []
+        if func.__name__ == "forward":
+            for tensor in tensor_list:
+                if tensor.requires_grad:
+                    tensor.pin()
         if func.__name__ == "backward":
             for tensor in tensor_list:
                 if tensor.requires_grad:
                     tensor._magic_handle = tensor.grad_fn.register_prehook(
                         lambda grad: _backward_hook_fn(grad, tensor)
                         )
+                    tensor.unpin()
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
