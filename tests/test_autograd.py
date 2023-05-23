@@ -4,7 +4,11 @@ from managed import ManagedTensor as mt, device_manager as dm, managed_module
 from copy import deepcopy as copy
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    filemode='w',
+    filename='test_autograd.log'
+    )
 
 class TestManagedGrads(unittest.TestCase):
     def cpu_device(self):

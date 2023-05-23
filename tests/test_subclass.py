@@ -3,7 +3,11 @@ import torch
 from managed import ManagedTensor as mt, device_manager as dm, managed_module
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG
+    filemode='w',
+    filename='test_subclas.log'
+    )
 
 
 class TestManagedMethods(unittest.TestCase):
