@@ -1,5 +1,6 @@
-from .device_manager import device_manager
-from .tensor import ManagedTensor
+from .device_manager import DeviceManager
+device_manager = DeviceManager()
+from .tensor import ManagedTensor, torch_function
 from torch import Tensor
 
 def managed_module(module):
@@ -17,3 +18,10 @@ def managed_module(module):
         return x
     module._apply(func)
     return module
+
+__all__ = [
+    "ManagedTensor",
+    "managed_module",
+    "torch_function",
+    "device_manager",
+]

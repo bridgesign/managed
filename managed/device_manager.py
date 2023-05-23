@@ -1,35 +1,11 @@
 import time
 import torch
 import logging
-from typing import List, Union, Tuple, Dict, Any
+from typing import List, Union, Tuple, Any
 import operator
-from types import GeneratorType
 import random
-import warnings
 
 LOG_LEVELS = ('debug', 'info', 'warning', 'error', 'critical')
-
-# Iterable must be a list
-def aggregate_tensors(obj_list: List, obj: Union[torch.Tensor, torch.nn.Module, str, GeneratorType, dict, List]):
-    if isinstance(obj, torch.Tensor):
-        obj_list.append(obj)
-        return
-    if isinstance(obj, torch.nn.Module):
-        for k in obj.state_dict().values(): # type: ignore[ModuleAttr]
-            aggregate_tensors(obj_list, k)
-    if isinstance(obj, str):
-        return
-    if isinstance(obj, GeneratorType):
-        warnings.warn("Generator type found while managing tensors")
-        return
-    if isinstance(obj, dict):
-        for k in obj.values():
-            aggregate_tensors(obj_list, k)
-        return
-    if hasattr(obj, "__iter__"):
-        for v in obj:
-            aggregate_tensors(obj_list, v)
-        return
 
 class DeviceManager:
     def __init__(
