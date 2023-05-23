@@ -23,6 +23,14 @@ FUNC_BLACKLIST = (
     "__copy__", "__deepcopy__", "__getstate__", "__setstate__",
     "__getnewargs__", "__getnewargs_ex__", "__format__",
     "__type__", "__issubclass__", "__instancecheck__",
+    "__init_subclass__", "__class_getitem__", "__bases__",
+    "__mro__", "__subclasses__", "__init__", "__delattr__",
+    "_has_compatible_shallow_copy_type", "_register_access_hook",
+    "_register_hook_dict", "_register_hook", "_backward_hooks",
+    "_backward_hooks_changed", "_version", "_version_counter",
+    "_base", "_cdata", "_grad", "_grad_fn", "_grad_fn_class",
+    "_grad_fn_type", "_grad_is_volatile", "_grad_layout",
+    "_grad_requires_grad", "_grad_subgraph", "_grad_version",
 )
 
 # Magic hooks for gradient aggregation on multiple devices
@@ -54,7 +62,7 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
-        if len(tensor_list) > 1:
+        if func.__name__ not in FUNC_BLACKLIST:
             for tensor in tensor_list:
                 if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
