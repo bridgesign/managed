@@ -2,6 +2,10 @@ import unittest
 import torch
 from managed import ManagedTensor as mt, device_manager as dm
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+
 class TestManagedMethods(unittest.TestCase):
     def test_cuda(self):
         a = torch.rand(3).as_subclass(mt)

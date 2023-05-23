@@ -3,6 +3,9 @@ import torch
 from managed import ManagedTensor as mt, device_manager as dm, managed_module
 from copy import deepcopy as copy
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 class TestManagedGrads(unittest.TestCase):
     def cpu_device(self):
         a = torch.rand(3)
@@ -71,3 +74,6 @@ class TestManagedGrads(unittest.TestCase):
         self.assertTrue(torch.allclose(l1.bias.grad, l1_managed.bias.grad.cpu()))
         self.assertTrue(torch.allclose(l2.weight.grad, l2_managed.weight.grad.cpu()))
         self.assertTrue(torch.allclose(l2.bias.grad, l2_managed.bias.grad.cpu()))
+
+if __name__ == '__main__':
+    unittest.main()
