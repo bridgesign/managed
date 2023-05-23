@@ -49,7 +49,9 @@ def torch_function(cls, func, types, args=[], kwargs=None):
         for obj in obj_list:
             if obj.requires_grad and obj.is_leaf:
                 obj._magic_handle = obj.grad_fn.register_prehook(lambda grad: _backward_hook_fn(grad, obj))
-    return func(*args, **kwargs).as_subclass(cls)
+    with torch._C.DisableTorchFunction():
+        ret = func(*args, **kwargs)
+    return ret
 
 class ManagedTensor(_ManagedTensor):
     __torch_function__ = classmethod(torch_function)
