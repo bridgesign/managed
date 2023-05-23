@@ -44,13 +44,13 @@ class ManagedTensor(_ManagedTensor):
             kwargs = {}
         # TODO: This needs to be optimized
         if func.__name__ not in FUNC_BLACKLIST:
-            obj_list = device_manager.send(args, kwargs)
+            tensor_list = device_manager.send(args, kwargs)
         else:
-            obj_list = []
+            tensor_list = []
         if func.__name__ == "backward":
-            for obj in obj_list:
-                if obj.requires_grad and obj.is_leaf:
-                    obj._magic_handle = obj.grad_fn.register_prehook(lambda grad: _backward_hook_fn(grad, obj))
+            for tensor in tensor_list:
+                if tensor.requires_grad:
+                    tensor._magic_handle = tensor.grad_fn.register_prehook(lambda grad: _backward_hook_fn(grad, obj))
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
