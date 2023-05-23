@@ -123,7 +123,8 @@ class DeviceManager:
              else:
                 raise RuntimeError('Pinned device {} is not available'.format(pinned_device))
         
-        device_coverage = get_device_coverage(self.cuda_devices, tensor_list, space_list)
+        device_coverage = get_device_coverage(self.devices, tensor_list, space_list)
+        device_coverage.pop(self.cpu_device, None)
         self.log(f'Device coverage: {device_coverage}')
         sorted_devices = sorted(device_coverage.keys(), key=lambda x: device_coverage[x], reverse=True)
         for device in sorted_devices:
