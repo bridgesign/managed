@@ -135,6 +135,8 @@ class DeviceManager:
         # to a different device unless we have to. This is to avoid the overhead.
         if len(current_devices) == 1:
             device = current_devices.pop()
+            if device == self.cpu_device:
+                return device
             if wait_for_avail(
                 device,
                 space_estimate,
