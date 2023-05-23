@@ -63,7 +63,7 @@ class DeviceManager:
     
     @property
     def devices(self):
-        return tuple( self.cpu_device, *self._cuda_devices)
+        return self.cpu_device, *self._cuda_devices
     
     @property
     def retry_limit(self):
