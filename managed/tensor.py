@@ -37,6 +37,7 @@ def _backward_hook_fn(grad_list, l):
     l._magic_handle.remove()
     return tuple(ret)
 
+@classmethod
 def torch_function(cls, func, types, args=[], kwargs=None):
     if kwargs is None:
         kwargs = {}
@@ -49,12 +50,10 @@ def torch_function(cls, func, types, args=[], kwargs=None):
         for obj in obj_list:
             if obj.requires_grad and obj.is_leaf:
                 obj._magic_handle = obj.grad_fn.register_prehook(lambda grad: _backward_hook_fn(grad, obj))
-    with torch._C.DisableTorchFunction():
-        ret = func(*args, **kwargs)
-    return ret
+    return super().__torch_function__(func, types, args, kwargs)
 
 class ManagedTensor(_ManagedTensor):
-    __torch_function__ = classmethod(torch_function)
+    __torch_function__ = torch_function
 
     def cuda(self, *args, **kwargs):
         if len(args) > 0:
