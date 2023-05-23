@@ -48,9 +48,15 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = device_manager.send(args, kwargs)
         else:
             tensor_list = []
-        if func.__name__ == "forward":
+        ##############################
+        # Special pinning due to unrequired
+        # device type check from pytroch
+        # Issue: https://github.com/pytorch/pytorch/issues/65016
+        # TODO: Remove this when issue is fixed
+        ##############################
+        if len(tensor_list) > 1:
             for tensor in tensor_list:
-                if tensor.requires_grad:
+                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
         if func.__name__ == "backward":
             for tensor in tensor_list:
