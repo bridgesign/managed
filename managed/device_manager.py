@@ -98,13 +98,6 @@ class DeviceManager:
             self._log.error(f"{level} is not a valid logging method - deafulting to {self.default_level}")
             level = self._default_level
         getattr(self._log, level)(msg)
-
-    def _get_device_properties(self, device: torch.device):
-        return (
-            torch.cuda.get_device_properties(device).total_memory * (1 - self._reserved),
-            torch.cuda.memory_reserved(device),
-            torch.cuda.memory_allocated(device),
-        )
         
     def _find_device(
         self,
@@ -114,21 +107,25 @@ class DeviceManager:
         ) -> torch.device:
 
         pinned_device = get_pinned_device(tensor_list)
+        self.log(f'Pinned device: {pinned_device}')
         if space_estimate < 0:
             space_estimate = sum(space_list)
+        self.log(f'Space estimate: {space_estimate}')
         if pinned_device is not None:
-            wait_for_avail(
+             if wait_for_avail(
                 pinned_device,
                 space_estimate,
                 self.comm_interface,
                 self._wait_time,
                 self._retry_limit,
                 self._reserved
-            )
-            return pinned_device # If there is a pinned device, return it
+            ):
+                return pinned_device # If there is a pinned device, return it
+             else:
+                raise RuntimeError('Pinned device {} is not available'.format(pinned_device))
         
         device_coverage = get_device_coverage(self.cuda_devices, tensor_list, space_list)
-        
+        self.log(f'Device coverage: {device_coverage}')
         sorted_devices = sorted(device_coverage.keys(), key=lambda x: device_coverage[x], reverse=True)
         for device in sorted_devices:
             if wait_for_avail(
@@ -139,7 +136,9 @@ class DeviceManager:
                 self._retry_limit,
                 self._reserved
                 ):
+                self.log(f'Found device {device}')
                 return device
+        self.log(f'No device found, returning CPU')
         return self.cpu_device # If no device can fit the tensor, return the CPU
 
     def send(
@@ -165,7 +164,9 @@ class DeviceManager:
             if len(tensor_list) < 2:
                 return tensor_list
             space_list = get_space_list(tensor_list, USE_HEURISTIC, HEUSRISTIC_FUNCTION)
+            self.log(f'Space list: {space_list}')
             device = self._find_device(tensor_list, space_list, space_estimate)
+            self.log(f'Found device: {device}')
         for tensor in tensor_list:
             if tensor.device != device:
                 tensor.data = tensor.data.to(device)
@@ -196,6 +197,12 @@ class DeviceManager:
                     ):
                     valid_devices[device] = cuda_memory_properties(device)[1]
             
+            self.log(f'Valid devices: {valid_devices}')
+            
+            if len(valid_devices) == 0:
+                continue
+            if len(valid_devices) == 1:
+                return list(valid_devices.keys())[0]
             # Select randomly based on the disperse flag
             devices = list(valid_devices.keys())
             values = list(valid_devices.values())
