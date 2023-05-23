@@ -31,7 +31,6 @@ class DeviceManager:
         self._log = logging.getLogger(f'DEVICE_MANAGER.{id(self)}')
         handler = logging.StreamHandler()
         self._log.addHandler(handler)
-        self._log.setLevel(logging.DEBUG)
     
     @property
     def default_level(self):
@@ -195,7 +194,8 @@ class DeviceManager:
                     1,
                     self._reserved
                     ):
-                    valid_devices[device] = cuda_memory_properties(device)[1]
+                    total, allocated, reserved = cuda_memory_properties(device)                    
+                    valid_devices[device] = total - allocated - reserved
             
             self.log(f'Valid devices: {valid_devices}')
             
