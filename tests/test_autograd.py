@@ -1,0 +1,73 @@
+import unittest
+import torch
+from managed import ManagedTensor as mt, device_manager as dm, managed_module
+from copy import deepcopy as copy
+
+class TestManagedGrads(unittest.TestCase):
+    def cpu_device(self):
+        a = torch.rand(3)
+        l = torch.nn.Linear(3, 1)
+        l_managed = managed_module(copy(l))
+        b = l(a)
+        b_managed = l_managed(a)
+        b.backward()
+        b_managed.backward()
+        self.assertEqual(b.device, dm.cpu)
+        self.assertEqual(b_managed.device, dm.cpu)
+        self.assertEqual(b.__class__, torch.Tensor)
+        self.assertEqual(b_managed.__class__, mt)
+        self.assertTrue(torch.allclose(l.weight.grad, l_managed.weight.grad))
+        self.assertTrue(torch.allclose(l.bias.grad, l_managed.bias.grad))
+    
+    def gpu_device(self):
+        a = torch.rand(3).cuda()
+        l = torch.nn.Linear(3, 1).cuda()
+        l_managed = managed_module(copy(l))
+        b = l(a)
+        b_managed = l_managed(a)
+        b.backward()
+        b_managed.backward()
+        self.assertEqual(b.device, dm.gpu)
+        self.assertEqual(b_managed.device, dm.gpu)
+        self.assertEqual(b.__class__, torch.Tensor)
+        self.assertEqual(b_managed.__class__, mt)
+        self.assertTrue(torch.allclose(l.weight.grad, l_managed.weight.grad))
+        self.assertTrue(torch.allclose(l.bias.grad, l_managed.bias.grad))
+    
+    def test_mix_device(self):
+        a_cpu = torch.rand(3)
+        a_gpu = a_cpu.clone().detach().cuda()
+        l = torch.nn.Linear(3, 1)
+        l_managed = managed_module(copy(l))
+        b = l(a_cpu)
+        b_managed = l_managed(a_gpu)
+        b.backward()
+        b_managed.backward()
+        self.assertEqual(b.device, dm.cpu)
+        self.assertEqual(b_managed.device, dm.gpu)
+        self.assertEqual(b.__class__, torch.Tensor)
+        self.assertEqual(b_managed.__class__, mt)
+        self.assertTrue(torch.allclose(l.weight.grad, l_managed.weight.grad.cpu()))
+        self.assertTrue(torch.allclose(l.bias.grad, l_managed.bias.grad.cpu()))
+    
+    def test_mix_device_2(self):
+        a_base = torch.rand(3)
+        b_base = torch.rand(3)
+        l1 = torch.nn.Linear(3, 3)
+        l2 = torch.nn.Linear(3, 1)
+        out = l2(l1(a_base)) + l2(l1(b_base))
+        out.backward()
+        a_managed = a_base.clone().detach().as_subclass(mt).cuda()
+        b_managed = b_base.clone().detach().as_subclass(mt)
+        l1_managed = managed_module(copy(l1))
+        l2_managed = managed_module(copy(l2))
+        out_managed = l2_managed(l1_managed(a_managed)) + l2_managed(l1_managed(b_managed))
+        out_managed.backward()
+        self.assertEqual(out.device, dm.cpu)
+        self.assertEqual(out_managed.device, dm.gpu)
+        self.assertEqual(out.__class__, torch.Tensor)
+        self.assertEqual(out_managed.__class__, mt)
+        self.assertTrue(torch.allclose(l1.weight.grad, l1_managed.weight.grad.cpu()))
+        self.assertTrue(torch.allclose(l1.bias.grad, l1_managed.bias.grad.cpu()))
+        self.assertTrue(torch.allclose(l2.weight.grad, l2_managed.weight.grad.cpu()))
+        self.assertTrue(torch.allclose(l2.bias.grad, l2_managed.bias.grad.cpu()))
