@@ -18,6 +18,8 @@ class TestManagedMethods(unittest.TestCase):
         self.assertEqual(c.__class__, mt)
         a = a.cuda()
         b = b.cuda()
+        self.assertTrue(a.device in dm.cuda_devices)
+        self.assertTrue(b.device in dm.cuda_devices)
         c = a + b
         self.assertTrue(c.device in dm.cuda_devices)
         self.assertEqual(c.__class__, mt)
