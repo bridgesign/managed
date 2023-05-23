@@ -104,7 +104,6 @@ class DeviceManager:
         space_list: List[int],
         space_estimate: int = -1,
         ) -> torch.device:
-        self.log(f'Class of tensor list: {[type(t) for t in tensor_list]}')
         pinned_device = get_pinned_device(tensor_list)
         self.log(f'Pinned device: {pinned_device}')
         if space_estimate < 0:
