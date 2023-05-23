@@ -50,7 +50,9 @@ class ManagedTensor(_ManagedTensor):
         if func.__name__ == "backward":
             for tensor in tensor_list:
                 if tensor.requires_grad:
-                    tensor._magic_handle = tensor.grad_fn.register_prehook(lambda grad: _backward_hook_fn(grad, obj))
+                    tensor._magic_handle = tensor.grad_fn.register_prehook(
+                        lambda grad: _backward_hook_fn(grad, tensor)
+                        )
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
