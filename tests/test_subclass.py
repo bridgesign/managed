@@ -1,6 +1,6 @@
 import unittest
 import torch
-from managed import ManagedTensor as mt, device_manager as dm
+from managed import ManagedTensor as mt, device_manager as dm, managed_module
 
 import logging
 logging.basicConfig(level=logging.DEBUG)
@@ -39,6 +39,11 @@ class TestManagedMethods(unittest.TestCase):
         c = torch.stack([a, b])
         self.assertTrue(c.device in dm.cuda_devices)
         self.assertEqual(c.__class__, mt)
+    
+    def test_module(self):
+        l = managed_module(torch.nn.Linear(3, 1))
+        self.assertEqual(l.weight.__class__, mt)
+        self.assertEqual(l.bias.__class__, mt)
 
 if __name__ == '__main__':
     unittest.main()
