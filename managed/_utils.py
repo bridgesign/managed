@@ -14,6 +14,7 @@ def aggregate_tensors(obj_list: List, obj: Union[torch.Tensor, torch.nn.Module, 
             obj_list.append(obj)
         else:
             obj_list.append(obj.as_subclass(_ManagedTensor)) # type: ignore[TensorAsArg]
+        return
     if isinstance(obj, torch.nn.Module):
         for k in obj.state_dict().values(): # type: ignore[ModuleAsArg]
             aggregate_tensors(obj_list, k)
