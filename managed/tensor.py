@@ -58,7 +58,7 @@ class ManagedTensor(_ManagedTensor):
             for tensor in tensor_list:
                 if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
-                    device_manager.log(f"Pinned: {tensor.shape}")
+                    device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
         if func.__name__ == "backward":
             for tensor in tensor_list:
                 if tensor.requires_grad:
