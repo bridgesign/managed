@@ -214,19 +214,11 @@ class DeviceManager:
         disperse: bool = False,
         **kwargs
         ) -> torch.device:
-        if isinstance(obj, torch.Tensor):
-            obj_size = obj.numel() * obj.element_size()
-            if obj.requires_grad:
-                obj_size += obj_size
-        elif isinstance(obj, torch.nn.Module):
-            obj_size = sum(p.numel() * p.element_size() for p in obj.parameters())
-            obj_size += sum(p.numel() * p.element_size() for p in obj.parameters() if p.requires_grad)
-        else:
-            raise ValueError('Object {} is not a torch.nn.Module or torch.Tensor'.format(obj))
-        
+        tensor_list = []
+        aggregate_tensors(tensor_list, obj)        
         # Heuristic object size
-        obj_size = obj_size  + 1.5*obj_size**0.5
-        return self.find_device(obj_size, *args, disperse=disperse, **kwargs)
+        size_estimate = sum(get_space_list(tensor_list, USE_HEURISTIC, HEUSRISTIC_FUNCTION))
+        return self.find_device(size_estimate, *args, disperse=disperse, **kwargs)
 
     def cuda(
         self,
