@@ -129,6 +129,8 @@ class DeviceManager:
         for tensor in tensor_list:
             current_devices.add(tensor.device)
         
+        self.log(f'Current devices: {current_devices}')
+        
         # Also ensures that if we have a single device, we don't try to send
         # to a different device unless we have to. This is to avoid the overhead.
         if len(current_devices) == 1:
