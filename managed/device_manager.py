@@ -111,7 +111,9 @@ class DeviceManager:
             space_estimate = sum(space_list)
         self.log(f'Space estimate: {space_estimate}')
         if pinned_device is not None:
-             if wait_for_avail(
+            if pinned_device == self.cpu_device:
+                return pinned_device
+            if wait_for_avail(
                 pinned_device,
                 space_estimate,
                 self.comm_interface,
@@ -120,7 +122,7 @@ class DeviceManager:
                 self._reserved
             ):
                 return pinned_device # If there is a pinned device, return it
-             else:
+            else:
                 raise RuntimeError('Pinned device {} is not available'.format(pinned_device))
         
         # Logic required to ensure that if we have all tensors on cpu
