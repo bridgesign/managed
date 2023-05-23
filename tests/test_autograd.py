@@ -78,6 +78,24 @@ class TestManagedGrads(unittest.TestCase):
         self.assertTrue(torch.allclose(l1.bias.grad, l1_managed.bias.grad.cpu()))
         self.assertTrue(torch.allclose(l2.weight.grad, l2_managed.weight.grad.cpu()))
         self.assertTrue(torch.allclose(l2.bias.grad, l2_managed.bias.grad.cpu()))
+    
+    def test_mix_device_rnn(self):
+        a_base = torch.rand(3)
+        l1 = torch.nn.Linear(3, 3)
+        l2 = torch.nn.Linear(3, 3)
+        out = l1(l2(l1(a_base))).sum()
+        out.backward()
+        a_managed = a_base.clone().detach().as_subclass(mt)
+        l1_managed = managed_module(copy(l1))
+        l2_managed = managed_module(copy(l2)).cuda()
+        out_managed = l1_managed(l2_managed(l1_managed(a_managed))).sum()
+        out_managed.backward()
+        self.assertTrue(out_managed.device in dm.cuda_devices)
+        self.assertEqual(out_managed.__class__, mt)
+        self.assertTrue(torch.allclose(l1.weight.grad, l1_managed.weight.grad.cpu()))
+        self.assertTrue(torch.allclose(l1.bias.grad, l1_managed.bias.grad.cpu()))
+        self.assertTrue(torch.allclose(l2.weight.grad, l2_managed.weight.grad.cpu()))
+        self.assertTrue(torch.allclose(l2.bias.grad, l2_managed.bias.grad.cpu()))
 
 if __name__ == '__main__':
     unittest.main()
