@@ -1,7 +1,7 @@
 import time
 import torch
 import logging
-from typing import List, Union, Tuple, Any
+from typing import Callable, List, Union, Tuple, Any
 import random
 
 from ._tensor import _ManagedTensor

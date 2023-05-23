@@ -1,4 +1,3 @@
-from typing import Callable
 from .device_manager import DeviceManager, USE_HEURISTIC, HEUSRISTIC_FUNCTION
 device_manager = DeviceManager()
 from .tensor import ManagedTensor, torch_function
