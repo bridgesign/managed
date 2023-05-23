@@ -123,6 +123,26 @@ class DeviceManager:
              else:
                 raise RuntimeError('Pinned device {} is not available'.format(pinned_device))
         
+        # Logic required to ensure that if we have all tensors on cpu
+        # we don't try to send them to a gpu
+        current_devices = set()
+        for tensor in tensor_list:
+            current_devices.add(tensor.device)
+        
+        # Also ensures that if we have a single device, we don't try to send
+        # to a different device unless we have to. This is to avoid the overhead.
+        if len(current_devices) == 1:
+            device = current_devices.pop()
+            if wait_for_avail(
+                device,
+                space_estimate,
+                self.comm_interface,
+                self._wait_time,
+                1,
+                self._reserved
+            ):
+                return device
+
         device_coverage = get_device_coverage(self.devices, tensor_list, space_list)
         device_coverage.pop(self.cpu_device, None)
         self.log(f'Device coverage: {device_coverage}')
