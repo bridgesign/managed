@@ -54,6 +54,7 @@ class ManagedTensor(_ManagedTensor):
                     tensor._magic_handle = tensor.grad_fn.register_prehook(
                         lambda grad: _backward_hook_fn(grad, tensor)
                         )
+        print(func.__name__)
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
