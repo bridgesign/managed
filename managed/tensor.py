@@ -22,7 +22,7 @@ FUNC_BLACKLIST = (
     "__sizeof__", "__reduce__", "__reduce_ex__", "__dir__",
     "__copy__", "__deepcopy__", "__getstate__", "__setstate__",
     "__getnewargs__", "__getnewargs_ex__", "__format__",
-    "__type__"
+    "__type__", "__issubclass__", "__instancecheck__",
 )
 
 # Magic hooks for gradient aggregation on multiple devices
