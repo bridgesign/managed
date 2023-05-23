@@ -1,6 +1,10 @@
 import torch
 
-class _ManagedTensor(torch.Tensor):        
+class _ManagedTensor(torch.Tensor):
+    """
+    Provides a base class for managed tensors.
+    Extends torch.Tensor to provide properties and methods for managing tensors.
+    """
     def __iter__(self):
         l = self.shape[0]
         for i in range(l):

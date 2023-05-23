@@ -1,4 +1,5 @@
-from .device_manager import DeviceManager
+from typing import Callable
+from .device_manager import DeviceManager, USE_HEURISTIC, HEUSRISTIC_FUNCTION
 device_manager = DeviceManager()
 from .tensor import ManagedTensor, torch_function
 from torch import Tensor
@@ -20,6 +21,8 @@ def managed_module(module):
     return module
 
 __all__ = [
+    "USE_HEURISTIC",
+    "HEUSRISTIC_FUNCTION",
     "ManagedTensor",
     "managed_module",
     "torch_function",

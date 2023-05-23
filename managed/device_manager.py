@@ -2,16 +2,21 @@ import time
 import torch
 import logging
 from typing import List, Union, Tuple, Any
-import operator
 import random
+
+from ._tensor import _ManagedTensor
+from ._utils import *
+
+USE_HEURISTIC = True
+HEUSRISTIC_FUNCTION: Callable[[int], int] = heuristic_size
 
 LOG_LEVELS = ('debug', 'info', 'warning', 'error', 'critical')
 
 class DeviceManager:
     def __init__(
         self,
-        comm_interface: Any = None,
-        cuda_devices: Union[None, Tuple[torch.device]] = None,
+        comm_interface: Any = time,
+        cuda_devices: Union[None, Tuple[torch.device, ...]] = None,
         reserved: float = 0.1,
         retry_limit: int = 10,
         wait_time: float = 0.1,
@@ -50,7 +55,7 @@ class DeviceManager:
         return self._cuda_devices
     
     @cuda_devices.setter
-    def cuda_devices(self, value: Tuple[torch.device]):
+    def cuda_devices(self, value: Tuple[torch.device, ...]):
         self._cuda_devices = value
     
     @property
@@ -103,102 +108,39 @@ class DeviceManager:
         
     def _find_device(
         self,
-        obj_list: List[Union[torch.nn.Module, torch.Tensor]],
-        space_estimate: int,
-        ):
-        # Find all the devices in the object list
-        devices = set()
-        pinned = False
-        curr_device = None
-        for obj in obj_list:
-            if isinstance(obj, torch.Tensor):
-                if hasattr(obj, 'pinned'):
-                    if not pinned and obj.pinned:
-                        curr_device = obj.device
-                        pinned = True
-                    elif curr_device != obj.device and obj.pinned:
-                        raise ValueError('Pinned tensors are not on the same device')
-                devices.add(obj.device)
-            elif isinstance(obj, torch.nn.Module):
-                for param in obj.parameters():
-                    if hasattr(param, 'pinned'):
-                        if not pinned and param.pinned:
-                            curr_device = param.device
-                            pinned = True
-                        elif curr_device != param.device and param.pinned:
-                            raise ValueError('Pinned tensors are not on the same device')
-                    devices.add(param.device)
-            else:
-                raise ValueError('Object {} is not a torch.nn.Module or torch.Tensor'.format(obj))
-        
-        # If all the objects are on the same device, then we will use that device
-        # unless its cpu to ensure fast opertaions
-        if len(devices) == 1:
-            return devices.pop()
-        
-        # Estimate the memory usage of the objects
-        if space_estimate == -1:
-            total_size = 0
-        else:
-            total_size = space_estimate
-        if not len(obj_list) and space_estimate == -1:
-            raise ValueError('Object list is empty and space estimate is not provided')
-        device_coverage = dict.fromkeys(self.devices, 0)
-        for obj in obj_list:
-            if isinstance(obj, torch.Tensor):
-                size = obj.numel() * obj.element_size()
-                if obj.requires_grad:
-                    size *= 2
-                # Heuristic to estimate the memory usage of the object
-                if space_estimate == -1:
-                    size = size + 1.5*size**0.5
-                    total_size += size
-                device_coverage[obj.device] += size
-            elif isinstance(obj, torch.nn.Module):
-                for param in obj.parameters():
-                    size = param.numel() * param.element_size()
-                    if param.requires_grad:
-                        size *= 2
-                    # Heuristic to estimate the memory usage of the object
-                    if space_estimate == -1:
-                        size = size + 1.5*size**0.5
-                        total_size += size
-                    device_coverage[param.device] += size
-            else:
-                raise ValueError('Object {} is not a torch.nn.Module or torch.Tensor'.format(obj))
-        
-        self.log(f'Object list size: {total_size} for devices: {device_coverage}')
+        tensor_list: List[_ManagedTensor],
+        space_list: List[int],
+        space_estimate: int = -1,
+        ) -> torch.device:
 
-        if pinned:
-            for _ in range(self._retry_limit):
-                total_memory, reserved, allocated = self._get_device_properties(curr_device)
-                if total_size < total_memory - allocated - reserved:
-                    return curr_device
-                if self.comm_interface is not None:
-                    self.comm_interface.sleep(0.1)
-                else:
-                    time.sleep(0.1)
-                self.log('Could not find a device to fit the operation, retrying', level='warning')
-            raise RuntimeError('Could not fit opertaion on pinned device')
-
-        device_coverage.pop(self.cpu_device)
-
-        device_coverage_sorted = sorted(
-            device_coverage.items(),
-            key=operator.itemgetter(1),
-            reverse=True
+        pinned_device = get_pinned_device(tensor_list)
+        if space_estimate < 0:
+            space_estimate = sum(space_list)
+        if pinned_device is not None:
+            wait_for_avail(
+                pinned_device,
+                space_estimate,
+                self.comm_interface,
+                self._wait_time,
+                self._retry_limit,
+                self._reserved
             )
-        for _ in range(self._retry_limit):
-            for device, coverage in device_coverage_sorted:
-                total_memory, reserved, allocated = self._get_device_properties(device)
-                if total_size - coverage < total_memory - allocated - reserved:
-                    return device
-            if self.comm_interface is not None:
-                self.comm_interface.sleep(0.1)
-            else:
-                time.sleep(0.1)
-            self.log('Could not find a device to fit the operation, retrying', level='warning')
-        raise RuntimeError('Could not find a device to fit the operation')
+            return pinned_device # If there is a pinned device, return it
+        
+        device_coverage = get_device_coverage(self.cuda_devices, tensor_list, space_list)
+        
+        sorted_devices = sorted(device_coverage.keys(), key=lambda x: device_coverage[x], reverse=True)
+        for device in sorted_devices:
+            if wait_for_avail(
+                device,
+                space_estimate,
+                self.comm_interface,
+                self._wait_time,
+                self._retry_limit,
+                self._reserved
+                ):
+                return device
+        return self.cpu_device # If no device can fit the tensor, return the CPU
 
     def send(
         self,
@@ -206,13 +148,13 @@ class DeviceManager:
         kwargs: dict,
         device: Union[None, torch.device, str] = None,
         space_estimate: int = -1,
-        ):
+        ) -> List[_ManagedTensor]:
         if len(self._cuda_devices) == 0:
             return []
         # If device is None, then we will try to find a device that can fit the object
-        obj_list = []
-        aggregate_tensors(obj_list, args)
-        aggregate_tensors(obj_list, kwargs)
+        tensor_list = []
+        aggregate_tensors(tensor_list, args)
+        aggregate_tensors(tensor_list, kwargs)
         if device is not None:
             if isinstance(device, str):
                 device = torch.device(device)
@@ -220,17 +162,16 @@ class DeviceManager:
                 raise ValueError('Device {} is not available'.format(device))
         else:
             # TODO: Optimize this
-            if len(obj_list) < 2:
-                return obj_list
-            device = self._find_device(obj_list, space_estimate=space_estimate)
-        if device == self.cpu_device:
-            return obj_list
-        for obj in obj_list:
-            if obj.device != device:
-                obj.data = obj.data.to(device, non_blocking=True)
-                if obj.grad is not None:
-                    obj.grad.data = obj.grad.data.to(device, non_blocking=True)
-        return obj_list
+            if len(tensor_list) < 2:
+                return tensor_list
+            space_list = get_space_list(tensor_list, USE_HEURISTIC, HEUSRISTIC_FUNCTION)
+            device = self._find_device(tensor_list, space_list, space_estimate)
+        for tensor in tensor_list:
+            if tensor.device != device:
+                tensor.data = tensor.data.to(device)
+                if tensor.grad is not None:
+                    tensor.grad.data = tensor.grad.data.to(device)
+        return tensor_list
     
     # If cannot find a device, then it will return CPU device
     def find_device(
@@ -245,16 +186,15 @@ class DeviceManager:
         for _ in range(self._retry_limit):
             valid_devices = {}
             for device in self._cuda_devices:
-                total_memory, reserved, allocated = self._get_device_properties(device)
-                if space_estimate < total_memory - allocated - reserved:
-                    valid_devices[device] = total_memory - allocated - reserved
-            if len(valid_devices) == 0:
-                self.log('Could not find a device to fit the operation, retrying', level='warning')
-                if self.comm_interface is not None:
-                    self.comm_interface.sleep(0.1)
-                else:
-                    time.sleep(0.1)
-                continue
+                if wait_for_avail(
+                    device,
+                    space_estimate,
+                    self.comm_interface,
+                    self._wait_time,
+                    1,
+                    self._reserved
+                    ):
+                    valid_devices[device] = cuda_memory_properties(device)[1]
             
             # Select randomly based on the disperse flag
             devices = list(valid_devices.keys())
@@ -302,5 +242,3 @@ class DeviceManager:
         if obj.device.type == 'cuda':
             return obj.device
         return self._cuda(obj, *args, disperse=disperse, **kwargs)
-
-device_manager = DeviceManager()
