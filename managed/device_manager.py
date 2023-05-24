@@ -193,7 +193,7 @@ class DeviceManager:
         for tensor in tensor_list:
             if tensor.device != device:
                 tensor.data = tensor.data.to(device)
-                if tensor.retain_grad:
+                if tensor.is_leaf:
                     if tensor.grad is not None:
                         tensor.grad.data = tensor.grad.data.to(device)
     
