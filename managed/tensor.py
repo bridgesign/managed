@@ -67,7 +67,7 @@ class ManagedTensor(_ManagedTensor):
                 if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
                     device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
-                if tensor.requires_grad:
+                if tensor.requires_grad and tensor.grad_fn is not None:
                     tensor._magic_handle = tensor.grad_fn.register_prehook(
                         lambda grad: _backward_hook_fn(grad, tensor)
                         )
