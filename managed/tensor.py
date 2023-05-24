@@ -34,25 +34,22 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def _backward_hook_fn(grad_list, l, device, grad_fn):
-    ret = []
-    for grad in grad_list:
-        grad = grad.to(device)
-        if l.grad is None:
-            ret.append(grad)
-            continue
-        grad.add_(l.grad.data.to(device))
-        l.grad = None
-        ret.append(grad)
-    grad_fn.metadata["magic_handle"].remove()
-    return tuple(ret)
+def _backward_hook_fn(tensor, grad_fn):
+    def func(grad_list):
+        device = grad_fn.metadata["device"]
+        for grad in grad_list:
+            grad.data = grad.data.to(device)
+        grad_fn.metadata["magic_handle"].remove()
+        return grad_list
+    return func
 
 def add_hooks_to_grad_fn(grad_fn, tensor, device):
     if "magic_handle" in grad_fn.metadata:
         return
     grad_fn.metadata["magic_handle"] = grad_fn.register_prehook(
-        lambda grad_list: _backward_hook_fn(grad_list, tensor, device, grad_fn)
+        lambda grad_list: _backward_hook_fn(tensor, grad_fn)(grad_list)
     )
+    grad_fn.metadata["device"] = device
     for sub_grad_fn in grad_fn.next_functions:
         if sub_grad_fn[0] is not None: # Ignore None grad_fn. This is probably a leaf
             device_manager.log(f"Adding hook to {sub_grad_fn[0].name()} Device: {device}")
