@@ -77,7 +77,11 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
-        return super().__torch_function__(func, types, args, kwargs)
+        ret = super().__torch_function__(func, types, args, kwargs)
+        ret_list = []
+        aggregate_tensors(ret_list, ret)
+        device_manager.log(f"Ret List type: {[type(x) for x in ret_list]}")
+        return ret
 
     def cuda(self, *args, **kwargs):
         if len(args) > 0:
