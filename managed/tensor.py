@@ -62,9 +62,9 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
-        if func.__name__ not in FUNC_BLACKLIST:
+        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             for tensor in tensor_list:
-                if tensor.requires_grad and isinstance(tensor, ManagedTensor) and tensor.is_leaf:
+                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
                     device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
         if func.__name__ == "backward":
