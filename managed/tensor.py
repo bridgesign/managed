@@ -51,6 +51,7 @@ def add_hooks_to_grad_fn(grad_fn, tensor, device):
     if hasattr(grad_fn, "_magic_handle"):
         return
     if isinstance(grad_fn, torch.autograd.graph.Node):
+        print(f"Adding hook to {grad_fn}")
         grad_fn._magic_handle = grad_fn.register_prehook(lambda grad_list: _backward_hook_fn(grad_list, tensor, device, grad_fn))
         for sub_grad_fn in grad_fn.next_functions:
             add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
