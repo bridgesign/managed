@@ -47,11 +47,9 @@ def get_root_unexplored_grad_fn(grad_fn):
         break
     else:
         return {grad_fn,}
-    root_grad_fn = set()
-    for next_grad_fn, _ in grad_fn.next_functions:
-        if next_grad_fn is None:
-            continue
-        root_grad_fn = root_grad_fn.union((get_root_unexplored_grad_fn(next_grad_fn),))
+    root_grad_fn = set().union(
+        *(get_root_unexplored_grad_fn(next_grad_fn) for next_grad_fn, _ in grad_fn.next_functions)
+    )
     return root_grad_fn
 
 class ManagedTensor(_ManagedTensor):
