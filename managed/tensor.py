@@ -54,6 +54,14 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
     root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
     return root_grad_fn
 
+def hook_fn(device, grad_fn):
+    def func(grad_list):
+        print(f"Backwarded {grad_fn.name()}")
+        for grad in grad_list:
+            grad.data = grad.data.to(device)
+        return grad_list
+    return func
+
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -91,11 +99,11 @@ class ManagedTensor(_ManagedTensor):
             device_manager.log(device_list)
             if len(root_grad_fn) == len(device_list):
                 for grad_fn, device in zip(root_grad_fn, device_list):
-                    grad_fn.register_prehook(lambda grad_list: tuple(grad.to(device) for grad in grad_list))
+                    grad_fn.register_prehook(hook_fn(device, grad_fn))
             else:
                 device = ret_list[0].device
                 for grad_fn in root_grad_fn:
-                    grad_fn.register_prehook(lambda grad_list: tuple(grad.to(device) for grad in grad_list))
+                    grad_fn.register_prehook(hook_fn(device, grad_fn))
         else:
             for tensor in tensor_list:
                 tensor.unpin()
