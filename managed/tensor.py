@@ -91,11 +91,11 @@ class ManagedTensor(_ManagedTensor):
             device_manager.log(device_list)
             if len(root_grad_fn) == len(device_list):
                 for grad_fn, device in zip(root_grad_fn, device_list):
-                    grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
+                    grad_fn.register_prehook(lambda grad_list: tuple(grad.to(device) for grad in grad_list))
             else:
                 device = ret_list[0].device
                 for grad_fn in root_grad_fn:
-                    grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
+                    grad_fn.register_prehook(lambda grad_list: tuple(grad.to(device) for grad in grad_list))
         else:
             for tensor in tensor_list:
                 tensor.unpin()
