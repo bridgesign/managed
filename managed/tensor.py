@@ -8,7 +8,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "_magic_handle", "is_leaf", "is_pinned", "is_contiguous",
+    "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -59,10 +59,14 @@ def extract_device(grad_fn) -> torch.device:
         return grad_fn.metadata["device"]
     return None
 
-def hook_fn(grad_fn):
+def hook_fn(grad_fn, ddevice):
     device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
     def func(grad_list):
         if len(grad_list) != len(device_list):
+            print(f"Hooked {grad_fn.name()} on {ddevice}")
+            for grad in grad_list:
+                if grad.data.device != ddevice:
+                    grad.data = grad.data.to(ddevice)
             return grad_list
         print(f"Hooked {grad_fn.name()} on {device_list}")
         for grad, device in zip(grad_list, device_list):
@@ -71,14 +75,6 @@ def hook_fn(grad_fn):
             if grad.data.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
-    return func
-
-def tensor_hook_fn(tensor):
-    def func(grad):
-        if grad.data.device != tensor.device:
-            grad.data = grad.data.to(tensor.device)
-        tensor._magic_handle.remove()
-        return grad
     return func
 
 class ManagedTensor(_ManagedTensor):
@@ -100,11 +96,6 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        if func.__name__ == "backward":
-            for tensor in tensor_list:
-                if tensor.requires_grad and tensor.is_leaf:
-                    print(f"Hooking {tensor} - {tensor.device}")
-                    tensor._magic_handle = tensor.register_hook(tensor_hook_fn(tensor))
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
             aggregate_tensors(ret_list, ret)
@@ -117,7 +108,7 @@ class ManagedTensor(_ManagedTensor):
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
-                gf.register_prehook(hook_fn(gf))
+                gf.register_prehook(hook_fn(gf, device))
         return ret
 
     def cuda(self, *args, **kwargs):
