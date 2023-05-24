@@ -40,14 +40,16 @@ def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]
     graph_level = [grad_funtions]
     while True:
         next_level = []
+        length = 0
         for gf in graph_level[-1]:
             for next_grad_fn, _ in gf.next_functions:
                 if next_grad_fn is None:
                     continue
                 if "device" in next_grad_fn.metadata:
                     continue
+                length += 1
                 next_level.append(next_grad_fn)
-        if len(next_level) == 0:
+        if length == 0:
             break
         graph_level.append(next_level)
     return graph_level
