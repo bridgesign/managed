@@ -69,8 +69,8 @@ def hook_fn(grad_fn):
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
         # Case : Accumulate gradients
-        # if hasattr(grad_fn, "variable"):
-        #     return grad_list
+        if hasattr(grad_fn, "variable"):
+            device_list.append(grad_fn.metadata["device"])
         device_manager.log(f"Grad for {grad_fn} is {device_list}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
