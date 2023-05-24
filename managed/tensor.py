@@ -1,5 +1,6 @@
 from managed import device_manager
 from ._tensor import _ManagedTensor
+from ._utils import aggregate_tensors
 import torch
 
 FUNC_BLACKLIST = (
@@ -37,8 +38,6 @@ FUNC_BLACKLIST = (
 def _backward_hook_fn(tensor, grad_fn):
     def func(grad_list):
         device = tensor.device
-        print(f"Tensor Grad: {tensor.grad}")
-        print(f"Grad Function: {grad_fn.name()} Device: {device}")
         for grad in grad_list:
             grad.data = grad.data.to(device)
         grad_fn.metadata["magic_handle"].remove()
@@ -65,25 +64,28 @@ class ManagedTensor(_ManagedTensor):
             kwargs = {}
         # TODO: This needs to be optimized
         if func.__name__ not in FUNC_BLACKLIST:
-            tensor_list = device_manager.send(args, kwargs)
+            tensor_list = []
+            aggregate_tensors(tensor_list, args)
+            aggregate_tensors(tensor_list, kwargs)
+            ##############################
+            # Special pinning due to unrequired
+            # device type check from pytroch
+            # Issue: https://github.com/pytorch/pytorch/issues/65016
+            # TODO: Remove this when issue is fixed
+            ##############################
+            if func.__name__ == "backward":
+                for tensor in tensor_list:
+                        tensor.unpin()
+            else:
+                for tensor in tensor_list:
+                    if tensor.requires_grad and isinstance(tensor, ManagedTensor):
+                        tensor.pin()
+                        device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
+                        if tensor.grad_fn is not None:
+                            add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
+            device_manager.send(args, kwargs)
         else:
             tensor_list = []
-        ##############################
-        # Special pinning due to unrequired
-        # device type check from pytroch
-        # Issue: https://github.com/pytorch/pytorch/issues/65016
-        # TODO: Remove this when issue is fixed
-        ##############################
-        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
-            for tensor in tensor_list:
-                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
-                    tensor.pin()
-                    device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
-                    if tensor.grad_fn is not None:
-                        add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
-        if func.__name__ == "backward":
-            for tensor in tensor_list:
-                    tensor.unpin()
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):

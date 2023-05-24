@@ -166,20 +166,16 @@ class DeviceManager:
                 return device
         self.log(f'No device found, returning CPU')
         return self.cpu_device # If no device can fit the tensor, return the CPU
-
+    
     def send(
         self,
-        args: list,
-        kwargs: dict,
+        tensor_list: List[_ManagedTensor],
         device: Union[None, torch.device, str] = None,
         space_estimate: int = -1,
-        ) -> List[_ManagedTensor]:
+        ) -> None:
         if len(self._cuda_devices) == 0:
             return []
         # If device is None, then we will try to find a device that can fit the object
-        tensor_list = []
-        aggregate_tensors(tensor_list, args)
-        aggregate_tensors(tensor_list, kwargs)
         if device is not None:
             if isinstance(device, str):
                 device = torch.device(device)
@@ -188,7 +184,7 @@ class DeviceManager:
         else:
             # TODO: Optimize this
             if len(tensor_list) < 2:
-                return tensor_list
+                return
             space_list = get_space_list(tensor_list, USE_HEURISTIC, HEUSRISTIC_FUNCTION)
             self.log(f'Space list: {space_list}')
             device = self._find_device(tensor_list, space_list, space_estimate)
@@ -198,7 +194,6 @@ class DeviceManager:
                 tensor.data = tensor.data.to(device)
                 if tensor.grad is not None:
                     tensor.grad.data = tensor.grad.data.to(device)
-        return tensor_list
     
     # If cannot find a device, then it will return CPU device
     def find_device(
