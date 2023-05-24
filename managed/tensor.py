@@ -51,9 +51,10 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            for tensor in tensor_list:
-                if tensor.requires_grad:
-                    tensor.hook_list.append(create_tensor_hook_function(tensor, tensor.device))
+            if func.__name__ != "backward":
+                for tensor in tensor_list:
+                    if tensor.requires_grad:
+                        tensor.hook_list.append(create_tensor_hook_function(tensor, tensor.device))
             device_manager.send(tensor_list)
         else:
             tensor_list = []
