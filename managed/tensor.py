@@ -97,7 +97,7 @@ class ManagedTensor(_ManagedTensor):
             device_manager.log(root_grad_fn)
             device_manager.log(device_list)
             for i, grad_fn in enumerate(root_grad_fn):
-                grad_fn.register_hook(hook_fn(device_list[i]))
+                grad_fn.register_prehook(hook_fn(device_list[i]))
         else:
             # for tensor in tensor_list:
             #     tensor.unpin()
