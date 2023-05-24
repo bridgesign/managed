@@ -90,7 +90,7 @@ class TestManagedGrads(unittest.TestCase):
         l2_managed = managed_module(copy(l2)).cuda()
         out_managed = l1_managed(l2_managed(l1_managed(a_managed))).sum()
         out_managed.backward()
-        self.assertTrue(out_managed.device in dm.cuda_devices)
+        self.assertTrue(out_managed.device in dm.cpu_device)
         self.assertEqual(out_managed.__class__, mt)
         self.assertTrue(torch.allclose(l1.weight.grad, l1_managed.weight.grad.cpu()))
         self.assertTrue(torch.allclose(l1.bias.grad, l1_managed.bias.grad.cpu()))
