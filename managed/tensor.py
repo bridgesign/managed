@@ -54,6 +54,7 @@ def add_hooks_to_grad_fn(grad_fn, tensor, device):
         lambda grad_list: _backward_hook_fn(grad_list, tensor, device, grad_fn)
     )
     for sub_grad_fn in grad_fn.next_functions:
+        print(sub_grad_fn[0])
         add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
     return
 
