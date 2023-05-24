@@ -1,3 +1,4 @@
+import time
 from typing import List
 from managed import device_manager
 from ._tensor import _ManagedTensor
@@ -77,7 +78,8 @@ def hook_fn(grad_fn):
             if device == None:
                 device = grad_fn.metadata["device"]
             if grad.device != device:
-                grad.data = grad.data.to(device, non_blocking=True)
+                grad.data = grad.data.to(device)
+        time.sleep(1)
         return grad_list
     return func
 
