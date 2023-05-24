@@ -108,6 +108,8 @@ class ManagedTensor(_ManagedTensor):
             ret_list = []
             aggregate_tensors(ret_list, ret)
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
+            device_manager.log(f"Graph: {graph}")
+            device_manager.log(f"Device List: {device_list}")
             graph_flattened = [elem for level in graph for elem in level]
             del graph
             while device_list:
