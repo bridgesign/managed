@@ -61,6 +61,10 @@ def extract_device(grad_fn) -> torch.device:
         return grad_fn.metadata["device"]
     return None
 
+# Seems there is delay in execution of hooks
+# TODO: Check if this is the case
+# The delay might be in transfer of data to device
+# TODO: Check if this is the case
 def hook_fn(grad_fn):
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
