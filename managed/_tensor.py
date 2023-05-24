@@ -10,6 +10,16 @@ class _ManagedTensor(torch.Tensor):
         for i in range(l):
             yield self[i]
     
+    # Created to handle issue with grad device type check
+    @property
+    def hook_list(self):
+        if not hasattr(self, "_hook_list"):
+            self._hook_list = []
+        return self._hook_list
+    
+    def add_hook(self, hook):
+        self.hook_list.append(hook)
+
     @property
     def pinned(self):
         if not hasattr(self, "_pin_device"):

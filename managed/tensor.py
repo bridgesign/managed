@@ -35,6 +35,11 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
+def create_tensor_hook_function(tensor, device):
+    def tensor_hook(grad):
+        return grad.data.to(device)
+    tensor._magic_hook.remove()
+    return tensor_hook
 
 class ManagedTensor(_ManagedTensor):
     @classmethod
@@ -46,9 +51,17 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
+            for tensor in tensor_list:
+                if tensor.requires_grad:
+                    tensor.hook_list.append(create_tensor_hook_function(tensor, tensor.device))
             device_manager.send(tensor_list)
         else:
             tensor_list = []
+        
+        if func.__name__ == "backward":
+            for tensor in tensor_list:
+                if len(tensor.hook_list) > 0:
+                    tensor._magic_hook = tensor.register_hook(tensor.hook_list.pop())
         ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
         # Special pinning due to unrequired
