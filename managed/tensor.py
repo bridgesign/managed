@@ -1,3 +1,4 @@
+from typing import List
 from managed import device_manager
 from ._tensor import _ManagedTensor
 from ._utils import aggregate_tensors
@@ -54,10 +55,28 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
     root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
     return root_grad_fn
 
+def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]:
+    graph_level = [grad_funtions]
+    while True:
+        next_level = []
+        for gf in graph_level[-1]:
+            gf.metadata["explored"] = True
+            for next_grad_fn, _ in gf.next_functions:
+                if next_grad_fn is None:
+                    continue
+                if "explored" in next_grad_fn.metadata:
+                    continue
+                next_level.append(next_grad_fn)
+        if len(next_level) == 0:
+            break
+        graph_level.append(next_level)
+    return graph_level
+
 def hook_fn(device):
     def func(grad_list):
         for grad in grad_list:
-            grad.data = grad.data.to(device)
+            if grad.data.device != device:
+                grad.data = grad.data.to(device)
         return grad_list
     return func
 
@@ -90,14 +109,15 @@ class ManagedTensor(_ManagedTensor):
             #         tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
-            nested_grad_fn = (
-                get_root_unexplored_grad_fn(tensor.grad_fn) for tensor in ret_list
-            )
-            root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
+            graph = get_unexplored_graph(ret_list)
+            root_grad_fn = graph.pop(-1)
             device_manager.log(root_grad_fn)
             device_manager.log(device_list)
             for i, grad_fn in enumerate(root_grad_fn):
                 grad_fn.register_prehook(hook_fn(device_list[i]))
+            for level in graph:
+                for grad_fn in level:
+                    grad_fn.register_prehook(hook_fn(ret_list[0].device))
         else:
             # for tensor in tensor_list:
             #     tensor.unpin()
