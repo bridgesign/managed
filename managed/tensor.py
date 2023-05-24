@@ -120,6 +120,7 @@ class ManagedTensor(_ManagedTensor):
                 return ret
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             graph_flattened = [elem for level in graph for elem in level]
+            device_manager.log(graph_flattened)
             del graph
             device = ret_list[0].device
             for gf in graph_flattened:
