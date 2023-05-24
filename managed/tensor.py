@@ -121,7 +121,7 @@ class ManagedTensor(_ManagedTensor):
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
-                gf.register_hook(hook_fn(gf))
+                gf.register_prehook(hook_fn(gf))
         return ret
 
     def cuda(self, *args, **kwargs):
