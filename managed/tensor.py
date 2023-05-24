@@ -59,14 +59,13 @@ def extract_device(grad_fn) -> torch.device:
         return grad_fn.metadata["device"]
     return None
 
-def hook_fn(grad_fn, ddevice):
+def hook_fn(grad_fn, cls):
     device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
     def func(grad_list):
         if len(grad_list) != len(device_list):
-            print(f"Hooked {grad_fn.name()} on {ddevice}")
+            print(f"Hooked {grad_fn.name()} on unkown device")
             for grad in grad_list:
-                if grad.data.device != ddevice:
-                    grad.data = grad.data.to(ddevice)
+                grad.__class__ = cls
             return grad_list
         print(f"Hooked {grad_fn.name()} on {device_list}")
         for grad, device in zip(grad_list, device_list):
@@ -97,9 +96,9 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
-            for t in tensor_list:
-                if t.requires_grad and t.is_leaf:
-                    t.pin()
+            # for t in tensor_list:
+            #     if t.requires_grad and t.is_leaf:
+            #         t.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
@@ -111,10 +110,10 @@ class ManagedTensor(_ManagedTensor):
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
-                gf.register_prehook(hook_fn(gf, device))
-        elif func.__name__ == "backward":
-            for t in tensor_list:
-                t.unpin()
+                gf.register_prehook(hook_fn(gf, cls))
+        # elif func.__name__ == "backward":
+        #     for t in tensor_list:
+        #         t.unpin()
         return ret
 
     def cuda(self, *args, **kwargs):
