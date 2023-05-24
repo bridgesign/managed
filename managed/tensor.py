@@ -75,7 +75,7 @@ class ManagedTensor(_ManagedTensor):
             ##############################
             if func.__name__ != "backward":
                 for tensor in tensor_list:
-                        if tensor.grad_fn is not None:
+                        if tensor.grad_fn is not None and not tensor.is_leaf:
                             add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
             device_manager.send(tensor_list)
         else:
