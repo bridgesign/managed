@@ -66,17 +66,20 @@ def extract_device(grad_fn) -> torch.device:
 # The delay might be in transfer of data to device
 # TODO: Check if this is the case
 def hook_fn(grad_fn):
+    # Case : Accumulate gradients
+    if hasattr(grad_fn, "variable"):
+        ddevice = grad_fn.variable.device
+    else:
+        ddevice = grad_fn.metadata["device"]
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
-        # Case : Accumulate gradients
-        if hasattr(grad_fn, "variable"):
-            device_list.append(grad_fn.variable.device)
         device_manager.log(f"Grad for {grad_fn} is {device_list}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
             if device == None:
-                continue
+                device = ddevice
+                device_manager.log(f"Grad for {grad_fn} is {device}")
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
@@ -114,9 +117,9 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
                 return ret
-            for t in ret_list:
-                if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
-                    t._grad_handle = t.register_hook(tensor_hook_fn(t))
+            # for t in ret_list:
+            #     if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
+            #         t._grad_handle = t.register_hook(tensor_hook_fn(t))
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             graph_flattened = [elem for level in graph for elem in level]
             del graph
