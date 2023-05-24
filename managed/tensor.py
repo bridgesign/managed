@@ -104,9 +104,9 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
-            # for tensor in tensor_list:
-            #     if tensor.requires_grad and tensor.is_leaf:
-            #         tensor.pin()
+            for tensor in tensor_list:
+                if tensor.requires_grad and tensor.is_leaf:
+                    tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
@@ -119,8 +119,8 @@ class ManagedTensor(_ManagedTensor):
                 for grad_fn in level:
                     grad_fn.register_prehook(hook_fn(ret_list[0].device))
         else:
-            # for tensor in tensor_list:
-            #     tensor.unpin()
+            for tensor in tensor_list:
+                tensor.unpin()
             pass
         return ret
 
