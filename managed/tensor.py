@@ -113,10 +113,10 @@ class ManagedTensor(_ManagedTensor):
             while device_list:
                 device = device_list.pop()
                 grad_fn = graph_flattened.pop()
-                grad_fn.register_hook(hook_fn(device, grad_fn))
+                grad_fn.register_prehook(hook_fn(device, grad_fn))
             device = ret_list[0].device
             for grad_fn in graph_flattened:
-                grad_fn.register_hook(hook_fn(device, grad_fn))
+                grad_fn.register_prehook(hook_fn(device, grad_fn))
         return ret
 
     def cuda(self, *args, **kwargs):
