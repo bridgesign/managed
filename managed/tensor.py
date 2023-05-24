@@ -8,7 +8,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "is_leaf", "is_pinned", "is_contiguous",
+    "_grad_handle", "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -81,6 +81,16 @@ def hook_fn(grad_fn):
         return grad_list
     return func
 
+def tensor_hook_fn(tensor):
+    def func(grad):
+        print(f"Grad for {tensor.device} is {grad.device}")
+        if tensor.grad == None:
+            return grad
+        if tensor.grad.device != grad.device:
+            grad.data = grad.data.to(tensor.grad.device)
+        return grad
+    return func
+
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -98,6 +108,9 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
+        for t in tensor_list:
+            if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
+                t._grad_handle = t.register_hook(tensor_hook_fn(t))
         ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
