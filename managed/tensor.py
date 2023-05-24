@@ -71,7 +71,7 @@ def hook_fn(grad_fn):
         # Case : Accumulate gradients
         # if hasattr(grad_fn, "variable"):
         #     return grad_list
-        print(f"Grad for {grad_fn} is {device_list}", flush=True)
+        device_manager.log(f"Grad for {grad_fn} is {device_list}", flush=True)
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
@@ -84,7 +84,7 @@ def hook_fn(grad_fn):
 
 def tensor_hook_fn(tensor):
     def func(grad):
-        print(f"Grad for {tensor.device} is {grad.device}", flush=True)
+        device_manager.log(f"Grad for {tensor.device} is {grad.device}", flush=True)
         if tensor.grad == None:
             return grad
         if tensor.grad.device != grad.device:
