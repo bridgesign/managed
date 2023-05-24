@@ -85,15 +85,6 @@ def hook_fn(grad_fn):
         return grad_list
     return func
 
-def tensor_hook_fn(tensor):
-    def func(grad):
-        if tensor.grad == None:
-            return grad
-        if tensor.grad.device != grad.device:
-            tensor.grad.data = tensor.grad.data.to(grad.device)
-        return grad
-    return func
-
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -117,14 +108,13 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
                 return ret
-            # for t in ret_list:
-            #     if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
-            #         t._grad_handle = t.register_hook(tensor_hook_fn(t))
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             graph_flattened = [elem for level in graph for elem in level]
             del graph
             device = ret_list[0].device
             for gf in graph_flattened:
+                if "device" in gf.metadata:
+                    continue
                 gf.metadata["device"] = device
                 gf.register_prehook(hook_fn(gf))
         return ret
