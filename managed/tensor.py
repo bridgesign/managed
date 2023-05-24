@@ -8,7 +8,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "is_leaf", "is_pinned", "is_contiguous",
+    "_grad_handle", "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -59,14 +59,11 @@ def extract_device(grad_fn) -> torch.device:
         return grad_fn.metadata["device"]
     return None
 
-def hook_fn(grad_fn, ddevice):
+def hook_fn(grad_fn):
     device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
     def func(grad_list):
         if len(grad_list) != len(device_list):
-            print(f"Hooked {grad_fn.name()} on {ddevice}", flush=True)
-            for grad in grad_list:
-                if grad.device != ddevice:
-                    grad.data = grad.data.to(ddevice)
+            print(f"Hooked {grad_fn.name()} on unknown", flush=True)
             return grad_list
         print(f"Hooked {grad_fn.name()} on {device_list}", flush=True)
         for grad, device in zip(grad_list, device_list):
@@ -75,6 +72,16 @@ def hook_fn(grad_fn, ddevice):
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
+    return func
+
+def tensor_hook_fn(tensor):
+    def func(grad):
+        tensor._grad_hanlde.remove()
+        if tensor.grad is None:
+            return grad
+        if tensor.grad.device != grad.device:
+            grad.data = grad.data.to(tensor.grad.device)
+        return grad
     return func
 
 class ManagedTensor(_ManagedTensor):
@@ -88,18 +95,21 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
             device_manager.send(tensor_list)
-        
-        ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
         # TODO: This is a temporary fix for
         # device type check from pytroch
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
+        if func.__name__ == "backward":
             for t in tensor_list:
-                if t.requires_grad and t.is_leaf:
-                    t.pin()
+                if t.requires_grad and (t.is_leaf or t.retains_grad):
+                    t._grad_hanlde = t.register_hook(tensor_hook_fn(t))
+        ret = super().__torch_function__(func, types, args, kwargs)
+        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
+            # for t in tensor_list:
+            #     if t.requires_grad and t.is_leaf:
+            #         t.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
@@ -113,9 +123,9 @@ class ManagedTensor(_ManagedTensor):
                 gf.metadata["device"] = device
                 gf.register_prehook(hook_fn(gf, device))
             device_manager.log(f"Device: {[gf.metadata['device'] for gf in graph_flattened]}")
-        elif func.__name__ == "backward":
-            for t in tensor_list:
-                t.unpin()
+        # elif func.__name__ == "backward":
+        #     for t in tensor_list:
+        #         t.unpin()
         return ret
 
     def cuda(self, *args, **kwargs):
