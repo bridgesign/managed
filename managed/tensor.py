@@ -66,19 +66,25 @@ def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]
                 if "device" in next_grad_fn.metadata:
                     continue
                 next_level.append(next_grad_fn)
-            device_set = [gf.metadata["device"] for gf in next_level if "device" in gf.metadata]
-            if len(device_set) == 1:
-                gf.metadata["device"] = device_set.pop()
         if len(next_level) == 0:
             break
         graph_level.append(next_level)
     return graph_level
 
+def extract_device(grad_fn) -> torch.device:
+    if grad_fn is None:
+        return None
+    if "device" in grad_fn.metadata:
+        return grad_fn.metadata["device"]
+    return None
+
 def hook_fn(grad_fn):
-    device = grad_fn.metadata["device"]
+    device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
     def func(grad_list):
-        print(f"Hooked {grad_fn.name()} on {device}")
-        for grad in grad_list:
+        print(f"Hooked {grad_fn.name()} on {device_list}")
+        for grad, device in zip(grad_list, device_list):
+            if device is None:
+                continue
             if grad.data.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
@@ -114,11 +120,8 @@ class ManagedTensor(_ManagedTensor):
             del graph
             device = ret_list[0].device
             for gf in graph_flattened:
-                if "device" in gf.metadata:
-                    gf.register_prehook(hook_fn(gf))
-                else:
-                    gf.metadata["device"] = device
-                    gf.register_prehook(hook_fn(gf))
+                gf.metadata["device"] = device
+                gf.register_hook(hook_fn(gf))
         return ret
 
     def cuda(self, *args, **kwargs):
