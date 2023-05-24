@@ -36,9 +36,9 @@ FUNC_BLACKLIST = (
 
 # Magic hooks for gradient aggregation on multiple devices
 def create_tensor_hook_function(tensor, device):
-    def tensor_hook(grad):
+    def tensor_hook(_):
         tensor._magic_hook.remove()
-        return grad.data.to(device)
+        return tensor.data.to(device)
     return tensor_hook
 
 class ManagedTensor(_ManagedTensor):
