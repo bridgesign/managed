@@ -42,7 +42,7 @@ class TestManagedGrads(unittest.TestCase):
         self.assertTrue(torch.allclose(l.bias.grad, l_managed.bias.grad))
     
     def test_mix_device(self):
-        a_cpu = torch.rand(3)
+        a_cpu = torch.rand(1, 3)
         a_gpu = a_cpu.clone().detach().cuda()
         l = torch.nn.Linear(3, 1)
         l_managed = managed_module(copy(l))
