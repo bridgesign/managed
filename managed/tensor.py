@@ -62,11 +62,10 @@ def extract_device(grad_fn) -> torch.device:
 def hook_fn(grad_fn):
     device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
     def func(grad_list):
-        if len(grad_list) != len(device_list):
-            print(f"Hooked {grad_fn.name()} on {device_list}", flush=True)
-            return grad_list
         print(f"Hooked {grad_fn.name()} on {device_list}", flush=True)
         for grad, device in zip(grad_list, device_list):
+            if grad is None:
+                continue
             if device == None:
                 continue
             if grad.device != device:
