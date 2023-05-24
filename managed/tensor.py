@@ -68,29 +68,15 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            ##############################
-            # Special pinning due to unrequired
-            # device type check from pytroch
-            # Issue: https://github.com/pytorch/pytorch/issues/65016
-            # TODO: Remove this when issue is fixed
-            ##############################
-            print(f"Function: {func.__name__}")
-            if func.__name__ != "backward":
-                for tensor in tensor_list:
-                        if tensor.grad_fn is not None and not tensor.is_leaf:
-                            add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
             device_manager.send(tensor_list)
         else:
             tensor_list = []
-        # Unpin tensors after sending
-        if func.__name__ == "backward":
-            for tensor in tensor_list:
-                    tensor.unpin()
-        elif func.__name__ not in FUNC_BLACKLIST:
-            for tensor in tensor_list:
-                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
-                    tensor.pin()
-                    device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
+        ##############################
+        # Special pinning due to unrequired
+        # device type check from pytroch
+        # Issue: https://github.com/pytorch/pytorch/issues/65016
+        # TODO: Remove this when issue is fixed
+        ##############################
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
