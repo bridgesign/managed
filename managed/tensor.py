@@ -102,10 +102,10 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        # if func.__name__ == "backward":
-        #     for t in tensor_list:
-        #         if t.requires_grad:# and (t.is_leaf or t.retains_grad):
-        #             t._grad_hanlde = t.register_hook(tensor_hook_fn(t))
+        if func.__name__ == "backward":
+            for t in tensor_list:
+                if t.requires_grad:# and (t.is_leaf or t.retains_grad):
+                    t._grad_hanlde = t.register_hook(tensor_hook_fn(t))
         ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             # for t in tensor_list:
