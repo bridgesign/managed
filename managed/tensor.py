@@ -86,9 +86,13 @@ class ManagedTensor(_ManagedTensor):
             root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
             device_manager.log(root_grad_fn)
             device_manager.log(device_list)
-            assert len(root_grad_fn) == len(device_list)
-            for grad_fn, device in zip(root_grad_fn, device_list):
-                grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
+            if len(root_grad_fn) == len(device_list):
+                for grad_fn, device in zip(root_grad_fn, device_list):
+                    grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
+            else:
+                device = ret_list[0].device
+                for grad_fn in root_grad_fn:
+                    grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
         return ret
 
     def cuda(self, *args, **kwargs):
