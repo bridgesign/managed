@@ -74,6 +74,7 @@ class ManagedTensor(_ManagedTensor):
             # Issue: https://github.com/pytorch/pytorch/issues/65016
             # TODO: Remove this when issue is fixed
             ##############################
+            print(f"Function: {func.__name__}")
             if func.__name__ != "backward":
                 for tensor in tensor_list:
                         if tensor.grad_fn is not None and not tensor.is_leaf:
