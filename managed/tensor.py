@@ -3,6 +3,7 @@ from managed import device_manager
 from ._tensor import _ManagedTensor
 from ._utils import aggregate_tensors
 import torch
+from torch.autograd.graph import Node
 
 FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
@@ -35,26 +36,10 @@ FUNC_BLACKLIST = (
     "_grad_requires_grad", "_grad_subgraph", "_grad_version",
 )
 
-# Magic hooks for gradient aggregation on multiple devices
-def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]:
-    graph_level = [grad_funtions]
-    while True:
-        next_level = []
-        length = 0
-        for gf in graph_level[-1]:
-            for next_grad_fn, _ in gf.next_functions:
-                if next_grad_fn is None:
-                    continue
-                if "device" in next_grad_fn.metadata:
-                    continue
-                length += 1
-                next_level.append(next_grad_fn)
-        if length == 0:
-            break
-        graph_level.append(next_level)
-    return graph_level
-
-def extract_device(grad_fn) -> torch.device:
+def extract_device(grad_fn: Node) -> torch.device:
+    """
+    Helper function to extract device from grad_fn
+    """
     if grad_fn is None:
         return None
     if "device" in grad_fn.metadata:
@@ -65,8 +50,11 @@ def extract_device(grad_fn) -> torch.device:
 # TODO: Check if this is the case
 # The delay might be in transfer of data to device
 # TODO: Check if this is the case
-def hook_fn(grad_fn):
-    def func(grad_list):
+def hook_fn(grad_fn: Node):
+    """
+    Hook function to be registered on grad_fn
+    """
+    def func(grad_list: List[torch.Tensor]):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
         for grad, device in zip(grad_list, device_list):
             if grad is None:
@@ -81,6 +69,21 @@ def hook_fn(grad_fn):
         return grad_list
     return func
 
+def hook_unexplored_graph(grad_funtion: Node, device: torch.device) -> None:
+    """
+    Backward explore the newly created auto-grad graph
+    Explored nodes have a device metadata attached to them
+    Attach hook to unexplored nodes and add device metadata
+    """
+    if grad_funtion is None:
+        return
+    if "device" in grad_funtion.metadata:
+        return
+    grad_funtion.metadata["device"] = device
+    for next_grad_fn, _ in grad_funtion.next_functions:
+        hook_unexplored_graph(next_grad_fn, device)
+    grad_funtion.register_hook(hook_fn(grad_funtion))
+
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -92,27 +95,20 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
             device_manager.send(tensor_list)
+        ret = super().__torch_function__(func, types, args, kwargs)
         ############################################
         # TODO: This is a temporary fix for
         # device type check from pytroch
         # Issue: https://github.com/pytorch/pytorch/issues/65016
-        # Remove this when issue is fixed
+        # Remove this when issue is fixed properly
         ############################################
-        ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
                 return ret
-            graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
-            graph_flattened = [elem for level in graph for elem in level]
-            del graph
-            device = ret_list[0].device
-            for gf in graph_flattened:
-                if "device" in gf.metadata:
-                    continue
-                gf.metadata["device"] = device
-                gf.register_prehook(hook_fn(gf))
+            for t in ret_list:
+                hook_unexplored_graph(t.grad_fn, t.device)
         return ret
 
     def cuda(self, *args, **kwargs):

@@ -5,7 +5,17 @@ import torch
 
 from ._tensor import _ManagedTensor
 
-def aggregate_tensors(obj_list: List, obj: Union[torch.Tensor, torch.nn.Module, str, GeneratorType, dict, List]):
+def aggregate_tensors(
+    obj_list: List,
+    obj: Union[
+        torch.Tensor,
+        torch.nn.Module,
+        str,
+        GeneratorType,
+        dict,
+        List
+    ]
+    ) -> None:
     """
     Aggregates tensors from a given object into a list
     """
