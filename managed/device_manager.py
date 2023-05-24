@@ -174,7 +174,7 @@ class DeviceManager:
         space_estimate: int = -1,
         ) -> None:
         if len(self._cuda_devices) == 0:
-            return []
+            return
         # If device is None, then we will try to find a device that can fit the object
         if device is not None:
             if isinstance(device, str):
