@@ -76,10 +76,11 @@ def hook_fn(grad_fn):
 
 def tensor_hook_fn(tensor):
     def func(grad):
-        print(f"Hooked {tensor.shape} on {tensor.grad.device}", flush=True)
         if tensor.grad is None:
+            print(f"Hooked {tensor.shape} on {grad.device}", flush=True)
             pass
         elif tensor.grad.device != grad.device:
+            print(f"Hooked {tensor.shape} on {tensor.grad.device}", flush=True)
             grad.data = grad.data.to(tensor.grad.device)
         tensor._grad_hanlde.remove()
         return grad
