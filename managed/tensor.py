@@ -6,7 +6,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "_magic_handle", "is_leaf", "is_pinned", "is_contiguous",
+    "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -34,17 +34,27 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def _backward_hook_fn(grad_list, l):
+def _backward_hook_fn(grad_list, l, device, grad_fn):
     ret = []
     for grad in grad_list:
+        grad = grad.to(device)
         if l.grad is None:
             ret.append(grad)
             continue
-        grad.add_(l.grad.data.to(grad.device))
+        grad.add_(l.grad.data.to(device))
         l.grad = None
         ret.append(grad)
-    # l.grad_fn._magic_handle.remove()
+    grad_fn._magic_handle.remove()
     return tuple(ret)
+
+def add_hooks_to_grad_fn(grad_fn, tensor, device):
+    if hasattr(grad_fn, "_magic_handle"):
+        return
+    if isinstance(grad_fn, torch.autograd.graph.Node):
+        grad_fn._magic_handle = grad_fn.register_prehook(lambda grad_list: _backward_hook_fn(grad_list, tensor, device, grad_fn))
+        for sub_grad_fn in grad_fn.next_functions:
+            add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
+    return
 
 class ManagedTensor(_ManagedTensor):
     @classmethod
@@ -67,10 +77,8 @@ class ManagedTensor(_ManagedTensor):
                 if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
                     device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
-                if tensor.requires_grad and tensor.grad_fn is not None:
-                    tensor.grad_fn.register_prehook(
-                        lambda grad: _backward_hook_fn(grad, tensor)
-                        )
+                    if tensor.grad_fn is not None:
+                        add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
         if func.__name__ == "backward":
             for tensor in tensor_list:
                     tensor.unpin()
