@@ -78,7 +78,7 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(tensor_list, kwargs)
             if func.__name__ != "backward":
                 for tensor in tensor_list:
-                    if tensor.requires_grad:
+                    if tensor.requires_grad and not tensor.is_leaf:
                         if not hasattr(tensor, "_magic_handle"):
                             tensor._magic_handle = []
                         tensor._magic_handle.append(
