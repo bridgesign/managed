@@ -112,6 +112,7 @@ class ManagedTensor(_ManagedTensor):
             for gf in graph_flattened:
                 gf.metadata["device"] = device
                 gf.register_prehook(hook_fn(gf, device))
+            device_manager.log(f"Device: {[gf.metadata['device'] for gf in graph_flattened]}")
         elif func.__name__ == "backward":
             for t in tensor_list:
                 t.unpin()
