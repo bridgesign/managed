@@ -88,7 +88,7 @@ class ManagedTensor(_ManagedTensor):
             device_manager.log(device_list)
             assert len(root_grad_fn) == len(device_list)
             for grad_fn, device in zip(root_grad_fn, device_list):
-                grad_fn.register_prehook(lambda grad: grad.to(device))
+                grad_fn.register_prehook(lambda grad_list: (grad.to(device) for grad in grad_list))
         return ret
 
     def cuda(self, *args, **kwargs):
