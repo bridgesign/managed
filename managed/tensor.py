@@ -68,14 +68,12 @@ def extract_device(grad_fn) -> torch.device:
 def hook_fn(grad_fn):
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
-        device_manager.log(f"Grad for {grad_fn} is {device_list}")
+        device_manager.log(f"Grad for {grad_fn.name()} is {device_list} - {grad_fn.metadata['device']} - {grad_list}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
-                device_manager.log(f"Grad for {grad_fn} is None")
                 continue
             if device == None:
                 device = grad_fn.metadata["device"]
-                device_manager.log(f"Grad for {grad_fn} is {device}")
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
@@ -98,10 +96,7 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ############################################
-        try:
-            ret = super().__torch_function__(func, types, args, kwargs)
-        except RuntimeError as e:
-            raise e
+        ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
             aggregate_tensors(ret_list, ret)
