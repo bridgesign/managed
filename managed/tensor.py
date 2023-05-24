@@ -98,7 +98,10 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ############################################
-        ret = super().__torch_function__(func, types, args, kwargs)
+        try:
+            ret = super().__torch_function__(func, types, args, kwargs)
+        except RuntimeError as e:
+            raise e
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
             aggregate_tensors(ret_list, ret)
