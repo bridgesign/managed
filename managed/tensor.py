@@ -60,19 +60,22 @@ def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]
     while True:
         next_level = []
         for gf in graph_level[-1]:
-            gf.metadata["explored"] = True
             for next_grad_fn, _ in gf.next_functions:
                 if next_grad_fn is None:
                     continue
-                if "explored" in next_grad_fn.metadata:
+                if "device" in next_grad_fn.metadata:
                     continue
                 next_level.append(next_grad_fn)
+            device_set = [gf.metadata["device"] for gf in next_level if "device" in gf.metadata]
+            if len(device_set) == 1:
+                gf.metadata["device"] = device_set.pop()
         if len(next_level) == 0:
             break
         graph_level.append(next_level)
     return graph_level
 
-def hook_fn(device, grad_fn):
+def hook_fn(grad_fn):
+    device = grad_fn.metadata["device"]
     def func(grad_list):
         print(f"Hooked {grad_fn.name()} on {device}")
         for grad in grad_list:
@@ -88,13 +91,9 @@ class ManagedTensor(_ManagedTensor):
             kwargs = {}
         # TODO: This needs to be optimized
         tensor_list = []
-        device_list = []
         if func.__name__ not in FUNC_BLACKLIST:
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            device_list = list(
-                tensor.device for tensor in tensor_list if tensor.requires_grad
-            )
             device_manager.send(tensor_list)
         
         ret = super().__torch_function__(func, types, args, kwargs)
@@ -107,18 +106,19 @@ class ManagedTensor(_ManagedTensor):
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
             ret_list = []
             aggregate_tensors(ret_list, ret)
+            if len(ret_list) == 0:
+                return ret
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             device_manager.log(f"Graph: {graph}")
-            device_manager.log(f"Device List: {device_list}")
             graph_flattened = [elem for level in graph for elem in level]
             del graph
-            # while device_list:
-            #     device = device_list.pop()
-            #     grad_fn = graph_flattened.pop()
-            #     grad_fn.register_prehook(hook_fn(device, grad_fn))
             device = ret_list[0].device
-            for grad_fn in graph_flattened:
-                grad_fn.register_prehook(hook_fn(device, grad_fn))
+            for gf in graph_flattened:
+                if "device" in gf.metadata:
+                    gf.register_prehook(hook_fn(gf))
+                else:
+                    gf.metadata["device"] = device
+                    gf.register_prehook(hook_fn(gf))
         return ret
 
     def cuda(self, *args, **kwargs):
