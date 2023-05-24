@@ -73,10 +73,7 @@ class ManagedTensor(_ManagedTensor):
             # Issue: https://github.com/pytorch/pytorch/issues/65016
             # TODO: Remove this when issue is fixed
             ##############################
-            if func.__name__ == "backward":
-                for tensor in tensor_list:
-                        tensor.unpin()
-            else:
+            if func.__name__ != "backward":
                 for tensor in tensor_list:
                     if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                         tensor.pin()
@@ -86,6 +83,10 @@ class ManagedTensor(_ManagedTensor):
             device_manager.send(tensor_list)
         else:
             tensor_list = []
+        # Unpin tensors after sending
+        if func.__name__ == "backward":
+            for tensor in tensor_list:
+                    tensor.unpin()
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
