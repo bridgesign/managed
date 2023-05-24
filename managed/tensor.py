@@ -66,11 +66,6 @@ def extract_device(grad_fn) -> torch.device:
 # The delay might be in transfer of data to device
 # TODO: Check if this is the case
 def hook_fn(grad_fn):
-    # Case : Accumulate gradients
-    if grad_fn.name() == "torch::autograd::AccumulateGrad":
-        ddevice = grad_fn.variable.device
-    else:
-        ddevice = grad_fn.metadata["device"]
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
         device_manager.log(f"Grad for {grad_fn} is {device_list}")
@@ -78,7 +73,7 @@ def hook_fn(grad_fn):
             if grad is None:
                 continue
             if device == None:
-                device = ddevice
+                device = grad_fn.metadata["device"]
                 device_manager.log(f"Grad for {grad_fn} is {device}")
             if grad.device != device:
                 grad.data = grad.data.to(device)
