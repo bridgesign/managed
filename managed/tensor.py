@@ -68,10 +68,6 @@ class ManagedTensor(_ManagedTensor):
             device_list = tuple(
                 tensor.device for tensor in tensor_list if tensor.requires_grad and not tensor.is_leaf
             )
-            if func.__name__ != "backward" and len(device_list) > 1:
-                for tensor in tensor_list:
-                    if tensor.requires_grad:
-                        tensor.pin()
             device_manager.send(tensor_list)
         
         ret = super().__torch_function__(func, types, args, kwargs)
@@ -82,6 +78,9 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
+            for tensor in tensor_list:
+                if tensor.requires_grad:
+                    tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             nested_grad_fn = (
