@@ -68,6 +68,10 @@ class ManagedTensor(_ManagedTensor):
             device_list = tuple(
                 tensor.device for tensor in tensor_list if tensor.requires_grad and not tensor.is_leaf
             )
+            if func.__name__ != "backward" and len(device_list) > 1:
+                for tensor in tensor_list:
+                    if tensor.requires_grad:
+                        tensor.pin()
             device_manager.send(tensor_list)
         
         ret = super().__torch_function__(func, types, args, kwargs)
@@ -93,6 +97,9 @@ class ManagedTensor(_ManagedTensor):
                 device = ret_list[0].device
                 for grad_fn in root_grad_fn:
                     grad_fn.register_hook(lambda _, grad_list: tuple(grad.to(device) for grad in grad_list))
+        else:
+            for tensor in tensor_list:
+                tensor.unpin()
         return ret
 
     def cuda(self, *args, **kwargs):
