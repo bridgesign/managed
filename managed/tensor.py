@@ -105,6 +105,9 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
+            for tensor in tensor_list:
+                if tensor.requires_grad and tensor.is_leaf:
+                    tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
@@ -117,6 +120,9 @@ class ManagedTensor(_ManagedTensor):
             device = ret_list[0].device
             for grad_fn in graph_flattened:
                 grad_fn.register_prehook(hook_fn(device, grad_fn))
+        else:
+            for tensor in tensor_list:
+                tensor.unpin()
         return ret
 
     def cuda(self, *args, **kwargs):
