@@ -35,11 +35,24 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def create_tensor_hook_function(tensor, device):
-    def tensor_hook(_):
-        tensor._magic_hook.remove()
-        return tensor.data.to(device)
-    return tensor_hook
+def get_root_unexplored_grad_fn(grad_fn):
+    if grad_fn is None:
+        return set()
+    grad_fn.metadata["explored"] = True
+    for next_grad_fn, _ in grad_fn.next_functions:
+        if next_grad_fn is None:
+            continue
+        if "explored" in next_grad_fn.metadata:
+            continue
+        break
+    else:
+        return {grad_fn,}
+    root_grad_fn = set()
+    for next_grad_fn, _ in grad_fn.next_functions:
+        if next_grad_fn is None:
+            continue
+        root_grad_fn = root_grad_fn.union((get_root_unexplored_grad_fn(next_grad_fn),))
+    return root_grad_fn
 
 class ManagedTensor(_ManagedTensor):
     @classmethod
@@ -51,18 +64,11 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            if func.__name__ != "backward":
-                for tensor in tensor_list:
-                    if tensor.requires_grad:
-                        tensor.hook_list.append(create_tensor_hook_function(tensor, tensor.device))
+            device_list = tuple(tensor.device for tensor in tensor_list)
             device_manager.send(tensor_list)
         else:
             tensor_list = []
         
-        if func.__name__ == "backward":
-            for tensor in tensor_list:
-                if len(tensor.hook_list) > 0:
-                    tensor._magic_hook = tensor.register_hook(tensor.hook_list.pop())
         ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
         # Special pinning due to unrequired
@@ -70,6 +76,14 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
+        if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
+            ret_list = []
+            aggregate_tensors(ret_list, ret)
+            root_grad_fn = set().union(
+                *(get_root_unexplored_grad_fn(tensor.grad_fn) for tensor in ret_list)
+            )
+            print(root_grad_fn)
+            print(device_list)
         return ret
 
     def cuda(self, *args, **kwargs):
