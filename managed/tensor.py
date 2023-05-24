@@ -83,7 +83,7 @@ class ManagedTensor(_ManagedTensor):
                         device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
                         if tensor.grad_fn is not None:
                             add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
-            device_manager.send(args, kwargs)
+            device_manager.send(tensor_list)
         else:
             tensor_list = []
         return super().__torch_function__(func, types, args, kwargs)
