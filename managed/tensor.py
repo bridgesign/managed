@@ -87,7 +87,7 @@ def tensor_hook_fn(tensor):
         if tensor.grad == None:
             return grad
         if tensor.grad.device != grad.device:
-            grad.data = grad.data.to(tensor.grad.device)
+            tensor.grad.data = tensor.grad.data.to(grad.device)
         return grad
     return func
 
