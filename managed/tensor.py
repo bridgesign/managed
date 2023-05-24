@@ -69,13 +69,13 @@ def hook_fn(grad_fn):
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
         # Case : Accumulate gradients
-        if hasattr(grad_fn, "variable"):
-            return grad_list
+        # if hasattr(grad_fn, "variable"):
+        #     return grad_list
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
             if device == None:
-                device = grad_fn.metadata["device"]
+                continue
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
@@ -109,7 +109,7 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         for t in tensor_list:
-            if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle") and t.grad_fn is None:
+            if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
                 t._grad_handle = t.register_hook(tensor_hook_fn(t))
         ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
