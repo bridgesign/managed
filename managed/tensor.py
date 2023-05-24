@@ -46,6 +46,8 @@ def _backward_hook_fn(tensor, grad_fn):
     return func
 
 def add_hooks_to_grad_fn(grad_fn, tensor, device):
+    if grad_fn is None:
+        return
     device_manager.log(f"Adding hook to {grad_fn.name()} Device: {device}")
     if "magic_handle" in grad_fn.metadata:
         return
@@ -54,8 +56,7 @@ def add_hooks_to_grad_fn(grad_fn, tensor, device):
     )
     grad_fn.metadata["device"] = device
     for sub_grad_fn in grad_fn.next_functions:
-        if sub_grad_fn[0] is not None: # Ignore None grad_fn. This is probably a leaf
-            add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
+        add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
     return
 
 class ManagedTensor(_ManagedTensor):
@@ -71,17 +72,18 @@ class ManagedTensor(_ManagedTensor):
             device_manager.send(tensor_list)
         else:
             tensor_list = []
+        ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
         # Special pinning due to unrequired
         # device type check from pytroch
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
-        ret = super().__torch_function__(func, types, args, kwargs)
-        ret_list = []
-        if func.__name__ not in FUNC_BLACKLIST:
+        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
+            ret_list = []
             aggregate_tensors(ret_list, ret)
-            device_manager.log(f"Ret List type: {[type(x) for x in ret_list]}")
+            for tensor in ret_list:
+                add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
         return ret
 
     def cuda(self, *args, **kwargs):
