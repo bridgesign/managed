@@ -88,8 +88,8 @@ class TestManagedGrads(unittest.TestCase):
         a_managed = a_base.clone().detach().as_subclass(mt)
         l1_managed = managed_module(copy(l1))
         # Pinning required for RNNs
-        # l1_managed.weight.pin()
-        # l1_managed.bias.pin()
+        l1_managed.weight.pin()
+        l1_managed.bias.pin()
         l2_managed = managed_module(copy(l2)).cuda()
         out_managed = l1_managed(l2_managed(l1_managed(a_managed))).sum()
         out_managed.backward()
