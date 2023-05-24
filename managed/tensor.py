@@ -71,6 +71,7 @@ def hook_fn(grad_fn):
         # Case : Accumulate gradients
         # if hasattr(grad_fn, "variable"):
         #     return grad_list
+        print(f"Grad for {grad_fn} is {device_list}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
