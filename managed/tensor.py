@@ -66,7 +66,7 @@ class ManagedTensor(_ManagedTensor):
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
             device_list = tuple(
-                tensor.device for tensor in tensor_list if tensor.requires_grad
+                tensor.device for tensor in tensor_list if tensor.requires_grad and not tensor.is_leaf
             )
             device_manager.send(tensor_list)
         
