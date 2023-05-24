@@ -88,11 +88,11 @@ class ManagedTensor(_ManagedTensor):
             kwargs = {}
         # TODO: This needs to be optimized
         tensor_list = []
-        device_list = tuple()
+        device_list = []
         if func.__name__ not in FUNC_BLACKLIST:
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            device_list = tuple(
+            device_list = list(
                 tensor.device for tensor in tensor_list if tensor.requires_grad
             )
             device_manager.send(tensor_list)
@@ -108,14 +108,15 @@ class ManagedTensor(_ManagedTensor):
             ret_list = []
             aggregate_tensors(ret_list, ret)
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
-            device_manager.log(graph)
-            root_grad_fn = graph.pop(-1)
-            device_manager.log(device_list)
-            for i, grad_fn in enumerate(root_grad_fn):
-                grad_fn.register_prehook(hook_fn(device_list[i], grad_fn))
-            for level in graph:
-                for grad_fn in level:
-                    grad_fn.register_prehook(hook_fn(ret_list[0].device, grad_fn))
+            graph_flattened = [elem for level in graph for elem in level]
+            del graph
+            while device_list:
+                device = device_list.pop()
+                grad_fn = graph_flattened.pop()
+                grad_fn.register_hook(hook_fn(device, grad_fn))
+            device = ret_list[0].device
+            for grad_fn in graph_flattened:
+                grad_fn.register_hook(hook_fn(device, grad_fn))
         return ret
 
     def cuda(self, *args, **kwargs):
