@@ -7,7 +7,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "is_leaf", "is_pinned", "is_contiguous",
+    "_magic_hanlde", "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -59,6 +59,13 @@ def add_hooks_to_grad_fn(grad_fn, tensor, device):
         add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
     return
 
+def magic_hook(tensor, device):
+    def func(grad):
+        grad.data = grad.data.to(device)
+        return grad
+    tensor._magic_handle.pop(0).remove()
+    return func
+
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -69,6 +76,15 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
+            for tensor in tensor_list:
+                if tensor.requires_grad:
+                    if not hasattr(tensor, "_magic_handle"):
+                        tensor._magic_handle = []
+                    tensor._magic_handle.append(
+                        tensor.register_hook(
+                            lambda grad: magic_hook(tensor, tensor.device)(grad)
+                        )
+                    )
             device_manager.send(tensor_list)
         else:
             tensor_list = []
@@ -79,11 +95,6 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # TODO: Remove this when issue is fixed
         ##############################
-        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
-            ret_list = []
-            aggregate_tensors(ret_list, ret)
-            for tensor in ret_list:
-                add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
         return ret
 
     def cuda(self, *args, **kwargs):
