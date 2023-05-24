@@ -74,6 +74,7 @@ def hook_fn(grad_fn):
             if device == None:
                 if hasattr(grad_fn, "variable"):
                     device = grad_fn.metadata["device"]
+                    grad_fn.variable.data = grad_fn.variable.data.to(device)
                 else:
                     continue
                     # device = grad_fn.metadata["device"]
