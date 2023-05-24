@@ -65,7 +65,6 @@ def hook_fn(grad_fn):
         # Case : Accumulate gradients
         if hasattr(grad_fn, "variable"):
             device_list.append(grad_fn.variable.device)
-        print(f"Hooked {grad_fn.name()} on {device_list}", flush=True)
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
@@ -74,18 +73,6 @@ def hook_fn(grad_fn):
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
-    return func
-
-def tensor_hook_fn(tensor):
-    def func(grad):
-        if tensor.grad is None:
-            print(f"Hooked {tensor.shape} on {grad.device}", flush=True)
-            pass
-        elif tensor.grad.device != grad.device:
-            print(f"Hooked {tensor.shape} on {tensor.grad.device}", flush=True)
-            grad.data = grad.data.to(tensor.grad.device)
-        tensor._grad_hanlde.remove()
-        return grad
     return func
 
 class ManagedTensor(_ManagedTensor):
@@ -105,15 +92,8 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        # if func.__name__ == "backward":
-        #     for t in tensor_list:
-        #         if t.requires_grad:# and (t.is_leaf or t.retains_grad):
-        #             t._grad_hanlde = t.register_hook(tensor_hook_fn(t))
         ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
-            # for t in tensor_list:
-            #     if t.requires_grad and t.is_leaf:
-            #         t.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
@@ -121,17 +101,10 @@ class ManagedTensor(_ManagedTensor):
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             graph_flattened = [elem for level in graph for elem in level]
             del graph
-            device_manager.log(f"Graph: {graph_flattened}")
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
                 gf.register_prehook(hook_fn(gf))
-            device_manager.log(f"Device: {[gf.metadata['device'] for gf in graph_flattened]}")
-        # elif func.__name__ == "backward":
-        #     for t in tensor_list:
-        #         t.unpin()
-        elif func.__name__ == "backward":
-            print("Tensor List:", tensor_list)
         return ret
 
     def cuda(self, *args, **kwargs):

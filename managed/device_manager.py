@@ -163,7 +163,6 @@ class DeviceManager:
                 self._retry_limit,
                 self._reserved
                 ):
-                self.log(f'Found device {device}')
                 return device
         self.log(f'No device found, returning CPU')
         return self.cpu_device # If no device can fit the tensor, return the CPU
