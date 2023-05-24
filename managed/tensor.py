@@ -95,7 +95,7 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward"":
+        if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
