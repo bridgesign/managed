@@ -84,7 +84,6 @@ def hook_fn(grad_fn):
 
 def tensor_hook_fn(tensor):
     def func(grad):
-        device_manager.log(f"Grad for {tensor.device} is {grad.device}")
         if tensor.grad == None:
             return grad
         if tensor.grad.device != grad.device:
