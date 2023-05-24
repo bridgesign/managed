@@ -66,7 +66,8 @@ def hook_fn(grad_fn):
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
-            device = grad_fn.metadata["device"]
+            if device == None:
+                continue
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
