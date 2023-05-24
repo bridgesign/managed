@@ -35,9 +35,9 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def get_root_unexplored_grad_fn(grad_fn):
+def get_root_unexplored_grad_fn(grad_fn) -> tuple:
     if grad_fn is None:
-        return set()
+        return ()
     grad_fn.metadata["explored"] = True
     for next_grad_fn, _ in grad_fn.next_functions:
         if next_grad_fn is None:
@@ -46,10 +46,11 @@ def get_root_unexplored_grad_fn(grad_fn):
             continue
         break
     else:
-        return {grad_fn,}
-    root_grad_fn = set().union(
+        return (grad_fn,)
+    nested_root_grad_fn = tuple(
         *(get_root_unexplored_grad_fn(next_grad_fn) for next_grad_fn, _ in grad_fn.next_functions)
     )
+    root_grad_fn = tuple(el for tup in nested_root_grad_fn for el in tup)
     return root_grad_fn
 
 class ManagedTensor(_ManagedTensor):
@@ -58,14 +59,15 @@ class ManagedTensor(_ManagedTensor):
         if kwargs is None:
             kwargs = {}
         # TODO: This needs to be optimized
+        tensor_list = []
+        device_list = tuple()
         if func.__name__ not in FUNC_BLACKLIST:
-            tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            device_list = tuple(tensor.device for tensor in tensor_list if tensor.requires_grad)
+            device_list = tuple(
+                tensor.device for tensor in tensor_list if tensor.requires_grad
+            )
             device_manager.send(tensor_list)
-        else:
-            tensor_list = []
         
         ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
@@ -82,6 +84,7 @@ class ManagedTensor(_ManagedTensor):
             )
             print(root_grad_fn)
             print(device_list)
+            assert len(root_grad_fn) == len(device_list)
         return ret
 
     def cuda(self, *args, **kwargs):
