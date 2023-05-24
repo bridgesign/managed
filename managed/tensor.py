@@ -109,7 +109,7 @@ class ManagedTensor(_ManagedTensor):
             #         tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
-            graph = get_unexplored_graph(ret_list)
+            graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             root_grad_fn = graph.pop(-1)
             device_manager.log(root_grad_fn)
             device_manager.log(device_list)
