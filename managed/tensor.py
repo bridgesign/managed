@@ -54,7 +54,7 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
     root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
     return root_grad_fn
 
-def hook_fn(device, grad_fn):
+def hook_fn(device):
     def func(grad_list):
         for grad in grad_list:
             grad.data = grad.data.to(device)
@@ -96,13 +96,8 @@ class ManagedTensor(_ManagedTensor):
             root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
             device_manager.log(root_grad_fn)
             device_manager.log(device_list)
-            if len(root_grad_fn) == len(device_list):
-                for grad_fn, device in zip(root_grad_fn, device_list):
-                    grad_fn.register_prehook(hook_fn(device, grad_fn))
-            else:
-                device = ret_list[0].device
-                for grad_fn in root_grad_fn:
-                    grad_fn.register_prehook(hook_fn(device, grad_fn))
+            for i, grad_fn in enumerate(root_grad_fn):
+                grad_fn.register_hook(hook_fn(device_list[i]))
         else:
             # for tensor in tensor_list:
             #     tensor.unpin()
