@@ -110,7 +110,6 @@ class ManagedTensor(_ManagedTensor):
         ############################################
             for t in tensor_list:
                 if t.requires_grad and t.is_leaf and not hasattr(t, "_grad_handle"):
-                    device_manager.log(f"Registering hook for {t}")
                     t._grad_handle = t.register_hook(tensor_hook_fn(t))
         ret = super().__torch_function__(func, types, args, kwargs)
         if func.__name__ not in FUNC_BLACKLIST and func.__name__ != "backward":
