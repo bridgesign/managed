@@ -79,8 +79,9 @@ class ManagedTensor(_ManagedTensor):
         ##############################
         ret = super().__torch_function__(func, types, args, kwargs)
         ret_list = []
-        aggregate_tensors(ret_list, ret)
-        device_manager.log(f"Ret List type: {[type(x) for x in ret_list]}")
+        if func.__name__ not in FUNC_BLACKLIST:
+            aggregate_tensors(ret_list, ret)
+            device_manager.log(f"Ret List type: {[type(x) for x in ret_list]}")
         return ret
 
     def cuda(self, *args, **kwargs):
