@@ -37,7 +37,7 @@ FUNC_BLACKLIST = (
 # Magic hooks for gradient aggregation on multiple devices
 def _backward_hook_fn(tensor, grad_fn):
     def func(grad_list):
-        device = tensor.device
+        device = grad_fn.metadata["device"]
         for grad in grad_list:
             grad.data = grad.data.to(device)
         grad_fn.metadata["magic_handle"].remove()
