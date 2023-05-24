@@ -46,7 +46,7 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
             continue
         break
     else:
-        return tuple(grad_fn,)
+        return (grad_fn,)
     nested_grad_fn = (
         get_root_unexplored_grad_fn(next_grad_fn) \
             for next_grad_fn, _ in grad_fn.next_functions
