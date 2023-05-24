@@ -72,10 +72,10 @@ class ManagedTensor(_ManagedTensor):
         
         ret = super().__torch_function__(func, types, args, kwargs)
         ##############################
-        # Special pinning due to unrequired
+        # TODO: This is a temporary fix for
         # device type check from pytroch
         # Issue: https://github.com/pytorch/pytorch/issues/65016
-        # TODO: Remove this when issue is fixed
+        # Remove this when issue is fixed
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
             ret_list = []
@@ -84,9 +84,11 @@ class ManagedTensor(_ManagedTensor):
                 get_root_unexplored_grad_fn(tensor.grad_fn) for tensor in ret_list
             )
             root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
-            print(root_grad_fn)
-            print(device_list)
+            device_manager.log(root_grad_fn)
+            device_manager.log(device_list)
             assert len(root_grad_fn) == len(device_list)
+            for grad_fn, device in zip(root_grad_fn, device_list):
+                grad_fn.register_prehook(lambda grad: grad.to(device))
         return ret
 
     def cuda(self, *args, **kwargs):
