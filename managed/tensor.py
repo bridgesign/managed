@@ -75,9 +75,6 @@ class ManagedTensor(_ManagedTensor):
             ##############################
             if func.__name__ != "backward":
                 for tensor in tensor_list:
-                    if tensor.requires_grad and isinstance(tensor, ManagedTensor):
-                        tensor.pin()
-                        device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
                         if tensor.grad_fn is not None:
                             add_hooks_to_grad_fn(tensor.grad_fn, tensor, tensor.device)
             device_manager.send(tensor_list)
@@ -87,6 +84,11 @@ class ManagedTensor(_ManagedTensor):
         if func.__name__ == "backward":
             for tensor in tensor_list:
                     tensor.unpin()
+        elif func.__name__ not in FUNC_BLACKLIST:
+            for tensor in tensor_list:
+                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
+                    tensor.pin()
+                    device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
         return super().__torch_function__(func, types, args, kwargs)
 
     def cuda(self, *args, **kwargs):
