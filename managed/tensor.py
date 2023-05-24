@@ -7,7 +7,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "_magic_hanlde", "is_leaf", "is_pinned", "is_contiguous",
+    "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -35,36 +35,6 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def _backward_hook_fn(tensor, grad_fn):
-    def func(grad_list):
-        device = grad_fn.metadata["device"]
-        print(f"Grad Function: {grad_fn.name()} Device: {device}")
-        for grad in grad_list:
-            grad.data = grad.data.to(device)
-        grad_fn.metadata["magic_handle"].remove()
-        return grad_list
-    return func
-
-def add_hooks_to_grad_fn(grad_fn, tensor, device):
-    if grad_fn is None:
-        return
-    device_manager.log(f"Adding hook to {grad_fn.name()} Device: {device}")
-    if "magic_handle" in grad_fn.metadata:
-        return
-    grad_fn.metadata["magic_handle"] = grad_fn.register_prehook(
-        lambda grad_list: _backward_hook_fn(tensor, grad_fn)(grad_list)
-    )
-    grad_fn.metadata["device"] = device
-    for sub_grad_fn in grad_fn.next_functions:
-        add_hooks_to_grad_fn(sub_grad_fn[0], tensor, device)
-    return
-
-def magic_hook(tensor, device):
-    def func(grad):
-        grad.data = grad.data.to(device)
-        return grad
-    tensor._magic_handle.pop(0).remove()
-    return func
 
 class ManagedTensor(_ManagedTensor):
     @classmethod
@@ -76,16 +46,6 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            if func.__name__ != "backward":
-                for tensor in tensor_list:
-                    if tensor.requires_grad and not tensor.is_leaf:
-                        if not hasattr(tensor, "_magic_handle"):
-                            tensor._magic_handle = []
-                        tensor._magic_handle.append(
-                            tensor.register_hook(
-                                lambda grad: magic_hook(tensor, tensor.device)(grad)
-                            )
-                        )
             device_manager.send(tensor_list)
         else:
             tensor_list = []
