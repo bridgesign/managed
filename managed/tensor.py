@@ -79,7 +79,7 @@ class ManagedTensor(_ManagedTensor):
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
             for tensor in tensor_list:
-                if tensor.requires_grad:
+                if tensor.requires_grad and tensor.is_leaf:
                     tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
