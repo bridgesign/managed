@@ -105,9 +105,9 @@ class ManagedTensor(_ManagedTensor):
             if len(ret_list) == 0:
                 return ret
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
-            device_manager.log(f"Graph: {graph}")
             graph_flattened = [elem for level in graph for elem in level]
             del graph
+            device_manager.log(f"Graph: {graph_flattened}")
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
