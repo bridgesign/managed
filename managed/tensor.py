@@ -83,9 +83,9 @@ def hook_fn(grad_fn):
     def func(grad_list):
         print(f"Hooked {grad_fn.name()} on {device_list}")
         for grad, device in zip(grad_list, device_list):
-            if device is None:
+            if device == None:
                 continue
-            if grad.data.device != device:
+            if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
     return func
