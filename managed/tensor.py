@@ -47,10 +47,9 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
         break
     else:
         return (grad_fn,)
-    nested_root_grad_fn = tuple(
+    root_grad_fn = tuple(
         *(get_root_unexplored_grad_fn(next_grad_fn) for next_grad_fn, _ in grad_fn.next_functions)
     )
-    root_grad_fn = tuple(el for tup in nested_root_grad_fn for el in tup)
     return root_grad_fn
 
 class ManagedTensor(_ManagedTensor):
