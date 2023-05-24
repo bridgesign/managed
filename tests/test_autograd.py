@@ -80,7 +80,7 @@ class TestManagedGrads(unittest.TestCase):
         self.assertTrue(torch.allclose(l2.bias.grad, l2_managed.bias.grad.cpu()))
     
     def test_mix_device_rnn(self):
-        a_base = torch.rand(1, 3)
+        a_base = torch.rand(3)
         l1 = torch.nn.Linear(3, 3)
         l2 = torch.nn.Linear(3, 3)
         out = l1(l2(l1(a_base))).sum()
