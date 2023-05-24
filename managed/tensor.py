@@ -71,6 +71,7 @@ def hook_fn(grad_fn):
         device_manager.log(f"Grad for {grad_fn} is {device_list}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
+                device_manager.log(f"Grad for {grad_fn} is None")
                 continue
             if device == None:
                 device = grad_fn.metadata["device"]
