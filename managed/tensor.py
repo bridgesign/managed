@@ -67,12 +67,12 @@ class ManagedTensor(_ManagedTensor):
                 if tensor.requires_grad and isinstance(tensor, ManagedTensor):
                     tensor.pin()
                     device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
-        if func.__name__ == "backward":
-            for tensor in tensor_list:
                 if tensor.requires_grad:
                     tensor._magic_handle = tensor.grad_fn.register_prehook(
                         lambda grad: _backward_hook_fn(grad, tensor)
                         )
+        if func.__name__ == "backward":
+            for tensor in tensor_list:
                     tensor.unpin()
         return super().__torch_function__(func, types, args, kwargs)
 
