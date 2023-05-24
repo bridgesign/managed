@@ -80,9 +80,10 @@ class ManagedTensor(_ManagedTensor):
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
             ret_list = []
             aggregate_tensors(ret_list, ret)
-            root_grad_fn = set().union(
-                *(get_root_unexplored_grad_fn(tensor.grad_fn) for tensor in ret_list)
+            nested_grad_fn = (
+                get_root_unexplored_grad_fn(tensor.grad_fn) for tensor in ret_list
             )
+            root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
             print(root_grad_fn)
             print(device_list)
             assert len(root_grad_fn) == len(device_list)
