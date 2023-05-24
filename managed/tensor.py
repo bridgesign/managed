@@ -68,14 +68,14 @@ def extract_device(grad_fn) -> torch.device:
 def hook_fn(grad_fn):
     def func(grad_list):
         device_list = [extract_device(gf[0]) for gf in grad_fn.next_functions]
-        device_manager.log(f"Grad for {grad_fn.name()} is {device_list} - {grad_fn.metadata['device']} - {grad_list}")
-        if hasattr(grad_fn, "variable"):
-            device_manager.log(f"Variable for {grad_fn.name()} is {grad_fn.variable.device}")
         for grad, device in zip(grad_list, device_list):
             if grad is None:
                 continue
             if device == None:
-                device = grad_fn.metadata["device"]
+                if hasattr(grad_fn, "variable"):
+                    device = grad_fn.variable.device
+                else:
+                    device = grad_fn.metadata["device"]
             if grad.device != device:
                 grad.data = grad.data.to(device)
         return grad_list
