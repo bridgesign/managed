@@ -64,7 +64,7 @@ class ManagedTensor(_ManagedTensor):
         ##############################
         if func.__name__ not in FUNC_BLACKLIST:
             for tensor in tensor_list:
-                if tensor.requires_grad and isinstance(tensor, ManagedTensor):
+                if tensor.requires_grad and isinstance(tensor, ManagedTensor) and tensor.is_leaf:
                     tensor.pin()
                     device_manager.log(f"Pinned: {tensor.shape}, Function: {func.__name__}, Device: {tensor.device}")
         if func.__name__ == "backward":
