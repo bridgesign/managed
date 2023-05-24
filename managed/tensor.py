@@ -72,8 +72,9 @@ def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]
         graph_level.append(next_level)
     return graph_level
 
-def hook_fn(device):
+def hook_fn(device, grad_fn):
     def func(grad_list):
+        print(f"Hooked {grad_fn.name()} on {device}")
         for grad in grad_list:
             if grad.data.device != device:
                 grad.data = grad.data.to(device)
@@ -111,10 +112,10 @@ class ManagedTensor(_ManagedTensor):
             root_grad_fn = graph.pop(-1)
             device_manager.log(device_list)
             for i, grad_fn in enumerate(root_grad_fn):
-                grad_fn.register_prehook(hook_fn(device_list[i]))
+                grad_fn.register_prehook(hook_fn(device_list[i], grad_fn))
             for level in graph:
                 for grad_fn in level:
-                    grad_fn.register_prehook(hook_fn(ret_list[0].device))
+                    grad_fn.register_prehook(hook_fn(ret_list[0].device, grad_fn))
         return ret
 
     def cuda(self, *args, **kwargs):
