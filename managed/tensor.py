@@ -131,7 +131,7 @@ class ManagedTensor(_ManagedTensor):
         #     for t in tensor_list:
         #         t.unpin()
         elif func.__name__ == "backward":
-            pass
+            print("Tensor List", tensor_list)
         return ret
 
     def cuda(self, *args, **kwargs):
