@@ -56,7 +56,6 @@ def get_root_unexplored_grad_fn(grad_fn) -> tuple:
 
 def hook_fn(device, grad_fn):
     def func(grad_list):
-        print(f"Backwarded {grad_fn.name()}")
         for grad in grad_list:
             grad.data = grad.data.to(device)
         return grad_list
@@ -86,9 +85,9 @@ class ManagedTensor(_ManagedTensor):
         # Remove this when issue is fixed
         ##############################
         if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
-            for tensor in tensor_list:
-                if tensor.requires_grad and tensor.is_leaf:
-                    tensor.pin()
+            # for tensor in tensor_list:
+            #     if tensor.requires_grad and tensor.is_leaf:
+            #         tensor.pin()
             ret_list = []
             aggregate_tensors(ret_list, ret)
             nested_grad_fn = (
@@ -105,8 +104,9 @@ class ManagedTensor(_ManagedTensor):
                 for grad_fn in root_grad_fn:
                     grad_fn.register_prehook(hook_fn(device, grad_fn))
         else:
-            for tensor in tensor_list:
-                tensor.unpin()
+            # for tensor in tensor_list:
+            #     tensor.unpin()
+            pass
         return ret
 
     def cuda(self, *args, **kwargs):
