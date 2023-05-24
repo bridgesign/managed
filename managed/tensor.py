@@ -8,7 +8,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "_grad_handle", "is_leaf", "is_pinned", "is_contiguous",
+    "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -76,18 +76,6 @@ def hook_fn(grad_fn):
         return grad_list
     return func
 
-def tensor_hook_fn(tensor):
-    def func(grad):
-        if tensor.grad is None:
-            print(f"Hooked {tensor.shape} on {grad.device}", flush=True)
-            pass
-        elif tensor.grad.device != grad.device:
-            print(f"Hooked {tensor.shape} on {tensor.grad.device}", flush=True)
-            grad.data = grad.data.to(tensor.grad.device)
-        tensor._grad_hanlde.remove()
-        return grad
-    return func
-
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -121,12 +109,10 @@ class ManagedTensor(_ManagedTensor):
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
             graph_flattened = [elem for level in graph for elem in level]
             del graph
-            device_manager.log(f"Graph: {graph_flattened}")
             device = ret_list[0].device
             for gf in graph_flattened:
                 gf.metadata["device"] = device
                 gf.register_prehook(hook_fn(gf))
-            device_manager.log(f"Device: {[gf.metadata['device'] for gf in graph_flattened]}")
         # elif func.__name__ == "backward":
         #     for t in tensor_list:
         #         t.unpin()
