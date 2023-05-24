@@ -77,7 +77,7 @@ def hook_fn(grad_fn):
             if device == None:
                 device = grad_fn.metadata["device"]
             if grad.device != device:
-                grad.data = grad.to(device)
+                grad.data = grad.data.to(device)
         return grad_list
     return func
 
