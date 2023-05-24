@@ -8,7 +8,7 @@ FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
     "numel", "element_size", "to", "pinned",
     "__repr__", "register_hook", "register_backward_hook",
-    "is_leaf", "is_pinned", "is_contiguous",
+    "_magic_handle", "is_leaf", "is_pinned", "is_contiguous",
     "is_nonzero", "is_same_size", "is_set_to", "is_signed",
     "is_storage", "is_uninitialized", "is_variable",
     "is_cuda", "is_sparse", "is_quantized", "is_meta",
@@ -36,25 +36,6 @@ FUNC_BLACKLIST = (
 )
 
 # Magic hooks for gradient aggregation on multiple devices
-def get_root_unexplored_grad_fn(grad_fn) -> tuple:
-    if grad_fn is None:
-        return tuple()
-    grad_fn.metadata["explored"] = True
-    for next_grad_fn, _ in grad_fn.next_functions:
-        if next_grad_fn is None:
-            continue
-        if "explored" in next_grad_fn.metadata:
-            continue
-        break
-    else:
-        return (grad_fn,)
-    nested_grad_fn = (
-        get_root_unexplored_grad_fn(next_grad_fn) \
-            for next_grad_fn, _ in grad_fn.next_functions
-    )
-    root_grad_fn = tuple(elem for nested in nested_grad_fn for elem in nested)
-    return root_grad_fn
-
 def get_unexplored_graph(grad_funtions) -> List[List[torch.autograd.graph.Node]]:
     graph_level = [grad_funtions]
     while True:
@@ -90,6 +71,15 @@ def hook_fn(grad_fn):
         return grad_list
     return func
 
+def tensor_hook_fn(tensor):
+    def func(grad):
+        if tensor.grad is not None:
+            grad.data = grad.data.to(tensor.grad.device)
+        tensor._magic_handle.remove()
+        return grad
+    return func
+
+
 class ManagedTensor(_ManagedTensor):
     @classmethod
     def __torch_function__(cls, func, types, args=[], kwargs=None):
@@ -109,7 +99,11 @@ class ManagedTensor(_ManagedTensor):
         # Issue: https://github.com/pytorch/pytorch/issues/65016
         # Remove this when issue is fixed
         ##############################
-        if func.__name__ != "backward" and func.__name__ not in FUNC_BLACKLIST:
+        if func.__name__ == "backward":
+            for tensor in tensor_list:
+                if tensor.requires_grad and (tensor.is_leaf or tensor.retains_grad):
+                    tensor._magic_handle = tensor.register_hook(tensor_hook_fn(tensor))
+        elif func.__name__ not in FUNC_BLACKLIST:
             ret_list = []
             aggregate_tensors(ret_list, ret)
             if len(ret_list) == 0:
