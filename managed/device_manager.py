@@ -193,8 +193,9 @@ class DeviceManager:
         for tensor in tensor_list:
             if tensor.device != device:
                 tensor.data = tensor.data.to(device)
-                if tensor.grad is not None:
-                    tensor.grad.data = tensor.grad.data.to(device)
+                if tensor.retain_grad:
+                    if tensor.grad is not None:
+                        tensor.grad.data = tensor.grad.data.to(device)
     
     # If cannot find a device, then it will return CPU device
     def find_device(
