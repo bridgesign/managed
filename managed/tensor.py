@@ -110,8 +110,8 @@ class ManagedTensor(_ManagedTensor):
             ret_list = []
             aggregate_tensors(ret_list, ret)
             graph = get_unexplored_graph([t.grad_fn for t in ret_list if t.grad_fn is not None])
+            device_manager.log(graph)
             root_grad_fn = graph.pop(-1)
-            device_manager.log(root_grad_fn)
             device_manager.log(device_list)
             for i, grad_fn in enumerate(root_grad_fn):
                 grad_fn.register_prehook(hook_fn(device_list[i]))
