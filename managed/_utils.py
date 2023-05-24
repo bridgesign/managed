@@ -93,8 +93,6 @@ def get_device_coverage(
     device_coverage = dict.fromkeys(devices, 0)
     for t, s in zip(tensor_list, space_list):
         device_coverage[t.device] += s
-        if t.requires_grad:
-            device_coverage[t.device] += s
     return device_coverage
 
 def wait_for_avail(
