@@ -76,15 +76,16 @@ class ManagedTensor(_ManagedTensor):
             tensor_list = []
             aggregate_tensors(tensor_list, args)
             aggregate_tensors(tensor_list, kwargs)
-            for tensor in tensor_list:
-                if tensor.requires_grad:
-                    if not hasattr(tensor, "_magic_handle"):
-                        tensor._magic_handle = []
-                    tensor._magic_handle.append(
-                        tensor.register_hook(
-                            lambda grad: magic_hook(tensor, tensor.device)(grad)
+            if func.__name__ != "backward":
+                for tensor in tensor_list:
+                    if tensor.requires_grad:
+                        if not hasattr(tensor, "_magic_handle"):
+                            tensor._magic_handle = []
+                        tensor._magic_handle.append(
+                            tensor.register_hook(
+                                lambda grad: magic_hook(tensor, tensor.device)(grad)
+                            )
                         )
-                    )
             device_manager.send(tensor_list)
         else:
             tensor_list = []
