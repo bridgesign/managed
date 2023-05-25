@@ -8,6 +8,14 @@ def wrap_tensor(tensor_cls):
     def func(tensor):
         if isinstance(tensor, tensor_cls):
             return tensor
+        if isinstance(tensor, torch.nn.Parameter):
+            cls = type(
+                f"{tensor_cls.__name__}.Parameter",
+                (tensor_cls, torch.nn.Parameter),
+                {}
+            )
+            tensor.__class__ = cls
+            return tensor
         if isinstance(tensor, torch.Tensor):
             return tensor.as_subclass(tensor_cls)
     return func
