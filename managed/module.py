@@ -9,20 +9,7 @@ def wrap_tensor(tensor_cls):
         if isinstance(tensor, tensor_cls):
             return tensor
         if isinstance(tensor, torch.nn.Parameter):
-            func(tensor.data)
-            if isinstance(tensor.data, torch.Tensor):
-                cls = type(
-                    f"Parameter",
-                    (tensor_cls, torch.nn.Parameter,),
-                    {}
-                )
-            else:
-                cls = type(
-                    f"Parameter",
-                    (torch.nn.Parameter,),
-                    {},
-                )
-            tensor.__class__ = cls
+            tensor.__torch_function__ = tensor_cls.__torch_function__
             return tensor
         if isinstance(tensor, torch.Tensor):
             tensor.__class__ = tensor_cls
