@@ -1,6 +1,6 @@
 import unittest
 import torch
-from managed import ManagedTensor as mt, device_manager as dm, managed_module
+from managed import ManagedTensor as mt, device_manager as dm, ManagedModule as mm
 from copy import deepcopy as copy
 
 import logging
@@ -14,7 +14,7 @@ class TestManagedGrads(unittest.TestCase):
     def cpu_device(self):
         a = torch.rand(3)
         l = torch.nn.Linear(3, 1)
-        l_managed = managed_module(copy(l))
+        l_managed = mm.from_module(copy(l))
         b = l(a)
         b_managed = l_managed(a)
         b.backward()
@@ -29,7 +29,7 @@ class TestManagedGrads(unittest.TestCase):
     def gpu_device(self):
         a = torch.rand(3).cuda()
         l = torch.nn.Linear(3, 1).cuda()
-        l_managed = managed_module(copy(l))
+        l_managed = mm.from_module(copy(l))
         b = l(a)
         b_managed = l_managed(a)
         b.backward()
@@ -45,7 +45,7 @@ class TestManagedGrads(unittest.TestCase):
         a_cpu = torch.rand(1, 3)
         a_gpu = a_cpu.clone().detach().cuda()
         l = torch.nn.Linear(3, 1)
-        l_managed = managed_module(copy(l))
+        l_managed = mm.from_module(copy(l))
         b = l(a_cpu)
         b_managed = l_managed(a_gpu)
         b.backward()
@@ -66,8 +66,8 @@ class TestManagedGrads(unittest.TestCase):
         out.backward()
         a_managed = a_base.clone().detach().as_subclass(mt).cuda()
         b_managed = b_base.clone().detach().as_subclass(mt)
-        l1_managed = managed_module(copy(l1))
-        l2_managed = managed_module(copy(l2))
+        l1_managed = mm.from_module(copy(l1))
+        l2_managed = mm.from_module(copy(l2))
         out_managed = l2_managed(l1_managed(a_managed)) + l2_managed(l1_managed(b_managed))
         out_managed.backward()
         self.assertEqual(out.device, dm.cpu_device)
@@ -86,11 +86,10 @@ class TestManagedGrads(unittest.TestCase):
         out = l1(l2(l1(a_base))).sum()
         out.backward()
         a_managed = a_base.clone().detach().as_subclass(mt)
-        l1_managed = managed_module(copy(l1))
+        l1_managed = mm.from_module(copy(l1))
         # Pinning required for RNNs
-        l1_managed.weight.pin()
-        l1_managed.bias.pin()
-        l2_managed = managed_module(copy(l2)).cuda()
+        l1_managed.pin()
+        l2_managed = mm.from_module(copy(l2)).cuda()
         out_managed = l1_managed(l2_managed(l1_managed(a_managed))).sum()
         out_managed.backward()
         self.assertEqual(out_managed.device, dm.cpu_device)
@@ -109,8 +108,8 @@ class TestManagedGrads(unittest.TestCase):
         out.backward()
         a_managed = a_base.clone().detach().as_subclass(mt)
         b_managed = b_base.clone().detach().as_subclass(mt)
-        l1_managed = managed_module(copy(l1))
-        l2_managed = managed_module(copy(l2)).cuda()
+        l1_managed = mm.from_module(copy(l1))
+        l2_managed = mm.from_module(copy(l2)).cuda()
         out_managed = torch.stack([l2_managed(l1_managed(a_managed)), l2_managed(l1_managed(b_managed))]).sum()
         out_managed.backward()
         self.assertTrue(out_managed.device in dm.cuda_devices)

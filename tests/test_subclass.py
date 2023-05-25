@@ -1,6 +1,6 @@
 import unittest
 import torch
-from managed import ManagedTensor as mt, device_manager as dm, managed_module
+from managed import ManagedTensor as mt, device_manager as dm, ManagedModule as mm
 
 import logging
 logging.basicConfig(
@@ -45,7 +45,7 @@ class TestManagedMethods(unittest.TestCase):
         self.assertEqual(c.__class__, mt)
     
     def test_module(self):
-        l = managed_module(torch.nn.Linear(3, 1))
+        l = mm.from_module(torch.nn.Linear(3, 1))
         self.assertEqual(l.weight.__class__, mt)
         self.assertEqual(l.bias.__class__, mt)
 
