@@ -15,7 +15,7 @@ def wrap_tensor(tensor_cls):
                 {}
             )
             tensor.__class__ = cls
-            tensor.__torch_function__ = tensor_cls.__torch_function__
+            # tensor.__torch_function__ = tensor_cls.__torch_function__
             return tensor
         if isinstance(tensor, torch.Tensor):
             tensor.__class__ = tensor_cls
