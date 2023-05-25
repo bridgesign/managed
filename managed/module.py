@@ -8,6 +8,9 @@ def wrap_tensor(tensor_cls):
     def func(tensor):
         if isinstance(tensor, tensor_cls):
             return tensor
+        # This is a quick hack. Modules have parameters which is a subclass
+        # But creating a new subclass of Parameter creates a problem
+        # TODO: Fix this
         if isinstance(tensor, torch.Tensor):
             tensor.__class__ = tensor_cls
             return tensor
@@ -60,3 +63,7 @@ class ManagedModule(torch.nn.Module):
 
     def unpin(self):
         self.apply_(lambda t: t.unpin())
+    
+__all__ = [
+    "ManagedModule",
+]
