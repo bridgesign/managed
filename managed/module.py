@@ -17,7 +17,8 @@ def wrap_tensor(tensor_cls):
             tensor.__class__ = cls
             return tensor
         if isinstance(tensor, torch.Tensor):
-            return tensor.as_subclass(tensor_cls)
+            tensor.__class__ = tensor_cls
+            return tensor
     return func
 
 def _inplace_func_wrap(fn):
