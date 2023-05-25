@@ -82,7 +82,7 @@ def hook_unexplored_graph(grad_funtion: Node, device: torch.device) -> None:
     grad_funtion.metadata["device"] = device
     for next_grad_fn, _ in grad_funtion.next_functions:
         hook_unexplored_graph(next_grad_fn, device)
-    grad_funtion.register_hook(hook_fn(grad_funtion))
+    grad_funtion.register_prehook(hook_fn(grad_funtion))
 
 class ManagedTensor(_ManagedTensor):
     @classmethod
