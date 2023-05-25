@@ -8,6 +8,6 @@ __all__ = [
     "USE_HEURISTIC",
     "HEUSRISTIC_FUNCTION",
     "ManagedTensor",
-    "managed_module",
+    "ManagedModule",
     "device_manager",
 ]
