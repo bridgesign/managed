@@ -11,7 +11,7 @@ def wrap_tensor(tensor_cls):
         if isinstance(tensor, torch.nn.Parameter):
             cls = type(
                 f"Parameter",
-                (tensor_cls,),
+                (tensor_cls, torch.nn.parameter._ParameterMeta),
                 {}
             )
             tensor.__class__ = cls
