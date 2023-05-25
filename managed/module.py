@@ -9,13 +9,8 @@ def wrap_tensor(tensor_cls):
         if isinstance(tensor, tensor_cls):
             return tensor
         if isinstance(tensor, torch.nn.Parameter):
-            cls = type(
-                f"Parameter",
-                (tensor_cls,),
-                {}
-            )
-            cls.__class__ =  torch.nn.parameter._ParameterMeta
-            tensor.__class__ = cls
+            class Parameter(tensor_cls, metaclass=torch.nn.parameter._ParameterMeta): pass
+            tensor.__class__ = Parameter
             # tensor.__torch_function__ = tensor_cls.__torch_function__
             return tensor
         if isinstance(tensor, torch.Tensor):
