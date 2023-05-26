@@ -26,7 +26,7 @@ For example, consider the following code:
 The recommended way to install `managed` is via `pip`:
 
 ```bash
-pip install managed
+pip install tensor-managed
 ```
 
 Alternatively, you can install `managed` from source:

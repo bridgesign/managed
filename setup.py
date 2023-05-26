@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 if __name__ == '__main__':
     setup(
-        name='managed',
+        name='tensor-managed',
         version='0.1',
         description='Automated GPU Allocation for PyTorch',
         author='Rohan Patil',
