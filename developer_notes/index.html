@@ -13,22 +13,24 @@
       
       
       
+        <link rel="prev" href="../limitations/">
       
-        <link rel="next" href="quick_start/">
       
-      <link rel="icon" href="assets/images/favicon.png">
+        <link rel="next" href="../managed_tensor/">
+      
+      <link rel="icon" href="../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.4.3, mkdocs-material-9.1.15">
     
     
       
-        <title>Managed</title>
+        <title>Developer Notes - Managed</title>
       
     
     
-      <link rel="stylesheet" href="assets/stylesheets/main.26e3688c.min.css">
+      <link rel="stylesheet" href="../assets/stylesheets/main.26e3688c.min.css">
       
         
-        <link rel="stylesheet" href="assets/stylesheets/palette.ecc896b0.min.css">
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ecc896b0.min.css">
       
       
 
@@ -44,11 +46,11 @@
       
     
     
-      <link rel="stylesheet" href="assets/_mkdocstrings.css">
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
     
-      <link rel="stylesheet" href="stylesheets/extra.css">
+      <link rel="stylesheet" href="../stylesheets/extra.css">
     
-    <script>__md_scope=new URL(".",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -77,7 +79,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#managed-automate-gpu-allocation-for-pytorch" class="md-skip">
+        <a href="#developer-notes" class="md-skip">
           Skip to content
         </a>
       
@@ -91,7 +93,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href="." title="Managed" class="md-header__button md-logo" aria-label="Managed" data-md-component="logo">
+    <a href=".." title="Managed" class="md-header__button md-logo" aria-label="Managed" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -110,7 +112,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Home
+              Developer Notes
             
           </span>
         </div>
@@ -214,12 +216,10 @@
         
   
   
-    
-  
 
 
   <li class="md-tabs__item">
-    <a href="." class="md-tabs__link md-tabs__link--active">
+    <a href=".." class="md-tabs__link">
       Home
     </a>
   </li>
@@ -231,7 +231,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="quick_start/" class="md-tabs__link">
+    <a href="../quick_start/" class="md-tabs__link">
       Quick Start
     </a>
   </li>
@@ -243,7 +243,7 @@
 
 
   <li class="md-tabs__item">
-    <a href="limitations/" class="md-tabs__link">
+    <a href="../limitations/" class="md-tabs__link">
       Limitations
     </a>
   </li>
@@ -252,10 +252,12 @@
         
   
   
+    
+  
 
 
   <li class="md-tabs__item">
-    <a href="developer_notes/" class="md-tabs__link">
+    <a href="./" class="md-tabs__link md-tabs__link--active">
       Developer Notes
     </a>
   </li>
@@ -270,7 +272,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="managed_tensor/" class="md-tabs__link">
+      <a href="../managed_tensor/" class="md-tabs__link">
         Reference
       </a>
     </li>
@@ -312,7 +314,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href="." title="Managed" class="md-nav__button md-logo" aria-label="Managed" data-md-component="logo">
+    <a href=".." title="Managed" class="md-nav__button md-logo" aria-label="Managed" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -341,6 +343,51 @@
 
   
   
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        Home
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../quick_start/" class="md-nav__link">
+        Quick Start
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../limitations/" class="md-nav__link">
+        Limitations
+      </a>
+    </li>
+  
+
+    
+      
+      
+      
+
+  
+  
     
   
   
@@ -353,12 +400,12 @@
       
       
         <label class="md-nav__link md-nav__link--active" for="__toc">
-          Home
+          Developer Notes
           <span class="md-nav__icon md-icon"></span>
         </label>
       
-      <a href="." class="md-nav__link md-nav__link--active">
-        Home
+      <a href="./" class="md-nav__link md-nav__link--active">
+        Developer Notes
       </a>
       
         
@@ -377,22 +424,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#overview" class="md-nav__link">
-    Overview
+  <a href="#pinning-issue" class="md-nav__link">
+    Pinning Issue
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#basic-usage" class="md-nav__link">
-    Basic Usage
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#installation" class="md-nav__link">
-    Installation
+  <a href="#hint-development-and-module-optimizations" class="md-nav__link">
+    Hint development and Module Optimizations
   </a>
   
 </li>
@@ -401,51 +441,6 @@
   
 </nav>
       
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="quick_start/" class="md-nav__link">
-        Quick Start
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="limitations/" class="md-nav__link">
-        Limitations
-      </a>
-    </li>
-  
-
-    
-      
-      
-      
-
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="developer_notes/" class="md-nav__link">
-        Developer Notes
-      </a>
     </li>
   
 
@@ -493,7 +488,7 @@
   
   
     <li class="md-nav__item">
-      <a href="managed_tensor/" class="md-nav__link">
+      <a href="../managed_tensor/" class="md-nav__link">
         ManagedTensor
       </a>
     </li>
@@ -507,7 +502,7 @@
   
   
     <li class="md-nav__item">
-      <a href="device_manager/" class="md-nav__link">
+      <a href="../device_manager/" class="md-nav__link">
         DeviceManager
       </a>
     </li>
@@ -521,7 +516,7 @@
   
   
     <li class="md-nav__item">
-      <a href="managed_module/" class="md-nav__link">
+      <a href="../managed_module/" class="md-nav__link">
         ManagedModule
       </a>
     </li>
@@ -565,7 +560,7 @@
                   
 
   
-    <a href="https://github.com/bridgesign/managed/edit/master/docs/index.md" title="Edit this page" class="md-content__button md-icon">
+    <a href="https://github.com/bridgesign/managed/edit/master/docs/developer_notes.md" title="Edit this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 20H6V4h7v5h5v3.1l2-2V8l-6-6H6c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h4v-2m10.2-7c.1 0 .3.1.4.2l1.3 1.3c.2.2.2.6 0 .8l-1 1-2.1-2.1 1-1c.1-.1.2-.2.4-.2m0 3.9L14.1 23H12v-2.1l6.1-6.1 2.1 2.1Z"/></svg>
     </a>
@@ -574,48 +569,46 @@
     
       
     
-    <a href="https://github.com/bridgesign/managed/raw/master/docs/index.md" title="View source of this page" class="md-content__button md-icon">
+    <a href="https://github.com/bridgesign/managed/raw/master/docs/developer_notes.md" title="View source of this page" class="md-content__button md-icon">
       
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17 18c.56 0 1 .44 1 1s-.44 1-1 1-1-.44-1-1 .44-1 1-1m0-3c-2.73 0-5.06 1.66-6 4 .94 2.34 3.27 4 6 4s5.06-1.66 6-4c-.94-2.34-3.27-4-6-4m0 6.5a2.5 2.5 0 0 1-2.5-2.5 2.5 2.5 0 0 1 2.5-2.5 2.5 2.5 0 0 1 2.5 2.5 2.5 2.5 0 0 1-2.5 2.5M9.27 20H6V4h7v5h5v4.07c.7.08 1.36.25 2 .49V8l-6-6H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4.5a8.15 8.15 0 0 1-1.23-2Z"/></svg>
     </a>
   
 
 
-<h1 id="managed-automate-gpu-allocation-for-pytorch">Managed: Automate GPU Allocation for PyTorch<a class="headerlink" href="#managed-automate-gpu-allocation-for-pytorch" title="Permanent link">&para;</a></h1>
-<hr />
-<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
-<p>Writing code to scale to multi-gpu machines can be a pain. Moreover, it is often the case that you want to run multiple experiments on the same machine, and you want to be able to run them in parallel. All is well and good till its a single GPU but when you have multiple GPUs, you have to manually specify which GPU to use for which experiment. This is where Managed comes in. Managed is a library that allows you to run multiple experiments on the same machine without having to worry about which GPU to use for which experiment.</p>
-<p>Managed handles the following things for you:</p>
-<ul>
-<li>Automatically allocates tensors on the GPUs</li>
-<li>Transparently moves the tensors from CPU to GPU and vice versa</li>
-<li>Move tensors between devices (CPU/GPU) according to memory availability</li>
-</ul>
-<h2 id="basic-usage">Basic Usage<a class="headerlink" href="#basic-usage" title="Permanent link">&para;</a></h2>
-<p>Managed provides a <a class="autorefs autorefs-internal" href="managed_tensor/#managedtensor-class-reference"><code>ManagedTensor</code></a> class that is a wrapper around the <a href="https://pytorch.org/docs/stable/tensors.html"><code>torch.Tensor</code></a> class. It provides the same API as the <a href="https://pytorch.org/docs/stable/tensors.html"><code>torch.Tensor</code></a> class but in addition uses a <a class="autorefs autorefs-internal" href="device_manager/#devicemanager-class-reference"><code>DeviceManager</code></a> object to determince which device to use for the tensor. The <a class="autorefs autorefs-internal" href="device_manager/#devicemanager-class-reference"><code>DeviceManager</code></a> object is responsible for allocating tensors on the GPUs and moving tensors between the CPU and the GPUs. It is a singleton object and is shared across all the <a class="autorefs autorefs-internal" href="managed_tensor/#managedtensor-class-reference"><code>ManagedTensor</code></a> objects.</p>
-<p>Another important class is the <a class="autorefs autorefs-internal" href="managed_module/#managedmodule-class-reference"><code>ManagedModule</code></a> class which is a wrapper around the <a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html"><code>torch.nn.Module</code></a> class. The class itself can be used to wrap preinitialized <a href="https://pytorch.org/docs/stable/generated/torch.nn.Module.html"><code>torch.nn.Module</code></a> objects or can be used as a base class for your own modules. Internally it uses the <a class="autorefs autorefs-internal" href="managed_tensor/#managedtensor-class-reference"><code>ManagedTensor</code></a> class to wrap the parameters of the module.</p>
-<p>For example, consider the following code:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span> <span class="nn">managed</span> <span class="kn">import</span> <span class="n">ManagedTensor</span> <span class="k">as</span> <span class="n">mt</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="kn">import</span> <span class="nn">torch</span>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
-</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Create a tensor on the CPU</span>
-</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">as_subclass</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
-</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="c1"># Create a tensor on the GPU</span>
-</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="n">y</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span><span class="o">.</span><span class="n">as_subclass</span><span class="p">(</span><span class="n">mt</span><span class="p">)</span>
-</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="c1"># Add the two tensors</span>
-</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="c1"># The result will be on the GPU</span>
-</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="c1"># x will be moved to the GPU</span>
-</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="n">z</span> <span class="o">=</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span>
+<h1 id="developer-notes">Developer Notes<a class="headerlink" href="#developer-notes" title="Permanent link">&para;</a></h1>
+<h2 id="pinning-issue">Pinning Issue<a class="headerlink" href="#pinning-issue" title="Permanent link">&para;</a></h2>
+<p>The pinning issue for model training can be tracked down to the following PyTorch issue - <a href="https://github.com/pytorch/pytorch/issues/65016">Fix autograd engine checks · Issue #65016 · pytorch/pytorch (github.com)</a>. Even though it is closed, the issue is with the <code>autograd</code> engine and not with the <code>torch</code> library. The modified code even after the PR has the following check:</p>
+<div class="language-cpp highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">grad</span><span class="p">.</span><span class="n">device</span><span class="p">()</span><span class="w"> </span><span class="o">!=</span><span class="w"> </span><span class="n">metadata</span><span class="p">.</span><span class="n">device</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="w">      </span><span class="c1">// quick hack for: https://github.com/pytorch/pytorch/issues/65016 but</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="w">      </span><span class="c1">// should be eventually removed</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="w">      </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="n">is_tensor_subclass</span><span class="p">()</span><span class="w"> </span><span class="o">||</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="w">            </span><span class="n">grad</span><span class="p">.</span><span class="n">unsafeGetTensorImpl</span><span class="p">()</span><span class="o">-&gt;</span><span class="n">is_python_dispatch</span><span class="p">()))</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">grad</span><span class="p">.</span><span class="n">dim</span><span class="p">()</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="mi">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="w">          </span><span class="n">grad</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">grad</span><span class="p">.</span><span class="n">to</span><span class="p">(</span><span class="n">metadata</span><span class="p">.</span><span class="n">device</span><span class="p">());</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="w">        </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span>
+</span><span id="__span-0-9"><a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="w">          </span><span class="n">std</span><span class="o">::</span><span class="n">stringstream</span><span class="w"> </span><span class="n">ss</span><span class="p">;</span>
+</span><span id="__span-0-10"><a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="w">          </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot;invalid gradient at index &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; - expected device &quot;</span><span class="p">;</span>
+</span><span id="__span-0-11"><a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="w">          </span><span class="n">ss</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">metadata</span><span class="p">.</span><span class="n">device</span><span class="p">()</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="s">&quot; but got &quot;</span><span class="w"> </span><span class="o">&lt;&lt;</span><span class="w"> </span><span class="n">grad</span><span class="p">.</span><span class="n">device</span><span class="p">();</span>
+</span><span id="__span-0-12"><a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="w">          </span><span class="n">AT_ERROR</span><span class="p">(</span><span class="n">format_error</span><span class="p">(</span><span class="n">ss</span><span class="p">.</span><span class="n">str</span><span class="p">()));</span>
+</span><span id="__span-0-13"><a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-0-14"><a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a><span class="w">      </span><span class="p">}</span>
+</span><span id="__span-0-15"><a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a><span class="w">    </span><span class="p">}</span>
 </span></code></pre></div>
-<h2 id="installation">Installation<a class="headerlink" href="#installation" title="Permanent link">&para;</a></h2>
-<p>The recommended way to install <code>managed</code> is via <code>pip</code>:</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>pip<span class="w"> </span>install<span class="w"> </span>managed
+<p>To understand how this is an issue, consider the following code:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="n">l1</span> <span class="o">=</span> <span class="n">ManagedModule</span><span class="o">.</span><span class="n">from_module</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">5</span><span class="p">))</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="n">l2</span> <span class="o">=</span> <span class="n">ManagedModule</span><span class="o">.</span><span class="n">from_module</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span><span class="mi">1</span><span class="p">))</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">in1</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">as_subclass</span><span class="p">(</span><span class="n">ManagedTensor</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">in2</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span><span class="o">.</span><span class="n">as_subclass</span><span class="p">(</span><span class="n">ManagedTensor</span><span class="p">)</span><span class="o">.</span><span class="n">cuda</span><span class="p">()</span>
+</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">loss1</span> <span class="o">=</span> <span class="n">l2</span><span class="p">(</span><span class="n">l1</span><span class="p">(</span><span class="n">in1</span><span class="p">))</span> <span class="c1"># Happens on cpu</span>
+</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">loss2</span> <span class="o">=</span> <span class="n">l2</span><span class="p">(</span><span class="n">l1</span><span class="p">(</span><span class="n">in2</span><span class="p">))</span> <span class="c1"># l1 l2 transferred to gpu</span>
+</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">loss</span> <span class="o">=</span> <span class="n">loss1</span> <span class="o">+</span><span class="n">loss2</span> <span class="c1"># loss1 data transferred to gpu</span>
+</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="n">loss</span><span class="o">.</span><span class="n">backward</span><span class="p">()</span> <span class="c1"># error comes from validate_output in engine.cpp</span>
 </span></code></pre></div>
-<p>Alternatively, you can install <code>managed</code> from source:</p>
-<div class="language-sh highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/bridgesign/managed.git
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nb">cd</span><span class="w"> </span>managed
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>python<span class="w"> </span>setup.py<span class="w"> </span>install
-</span></code></pre></div>
+<p>The graph node construced for the <code>loss1</code> and <code>loss2</code> variables have the <code>metadata.device()</code> to be <code>cpu</code> and <code>cuda:0</code>. The node of <code>loss</code> checks the output gradient device to be <code>cpu</code> and <code>cuda:0</code> and throws an error. The device of the output <code>grad</code> is the same as the one that goes in. All hooks run after the <code>validate_outputs</code> check in <code>engine.cpp</code> and hence there is no way to artificially change the device of the output <code>grad</code> tensor. The only way is to make the condition before check false. So it is not impossible to fix this issue but it is not trivial either.</p>
+<p>There are ways to go around pinning by not relying on inplace change of device for tensors but then the hopes of optimizing the gradient accumulation are lost. Consider that the computation started on GPU1 and many recurrent steps were done before shifting to GPU2. Now, even though it is possible to accumulate the gradients on GPU2 which is much better, it will have to copy nearly everytime to GPU1. This can happen many times without careful planning. This defeats the purpose of the package and hence for now pinning is the only solution.</p>
+<h2 id="hint-development-and-module-optimizations">Hint development and Module Optimizations<a class="headerlink" href="#hint-development-and-module-optimizations" title="Permanent link">&para;</a></h2>
+<p>As of now, <a class="autorefs autorefs-internal" href="../managed_module/#managedmodule-class-reference"><code>ManagedModule</code></a> is working only as an easy wrapping. But there is a lot of scope for optimizations even in the forward pass. It is possible to allocate individual tensors of the module on different GPUs for faster computation. The first and foremost and idea is to use fact that parameters are named and an identifier based learning can be added to <a class="autorefs autorefs-internal" href="../device_manager/#devicemanager-class-reference">'DeviceManager`</a>. This will be the most basic form of implicit hints. Explicit hints are a long way.</p>
 
 
 
@@ -641,15 +634,30 @@
       
       <nav class="md-footer__inner md-grid" aria-label="Footer" >
         
+          
+          <a href="../limitations/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Limitations" rel="prev">
+            <div class="md-footer__button md-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+            </div>
+            <div class="md-footer__title">
+              <span class="md-footer__direction">
+                Previous
+              </span>
+              <div class="md-ellipsis">
+                Limitations
+              </div>
+            </div>
+          </a>
+        
         
           
-          <a href="quick_start/" class="md-footer__link md-footer__link--next" aria-label="Next: Quick Start" rel="next">
+          <a href="../managed_tensor/" class="md-footer__link md-footer__link--next" aria-label="Next: ManagedTensor" rel="next">
             <div class="md-footer__title">
               <span class="md-footer__direction">
                 Next
               </span>
               <div class="md-ellipsis">
-                Quick Start
+                ManagedTensor
               </div>
             </div>
             <div class="md-footer__button md-icon">
@@ -707,10 +715,10 @@
       <div class="md-dialog__inner md-typeset"></div>
     </div>
     
-    <script id="__config" type="application/json">{"base": ".", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate", "toc.nest"], "search": "assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "..", "features": ["announce.dismiss", "content.action.edit", "content.action.view", "content.code.annotate", "content.code.copy", "content.tooltips", "navigation.footer", "navigation.indexes", "navigation.sections", "navigation.tabs", "navigation.top", "navigation.tracking", "search.highlight", "search.share", "search.suggest", "toc.follow", "toc.integrate", "toc.nest"], "search": "../assets/javascripts/workers/search.208ed371.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="assets/javascripts/bundle.b4d07000.min.js"></script>
+      <script src="../assets/javascripts/bundle.b4d07000.min.js"></script>
       
     
   </body>
