@@ -8,6 +8,7 @@ if __name__ == '__main__':
         version='0.1',
         description='Automated GPU Allocation for PyTorch',
         long_description=open('README.md').read(),
+        long_description_content_type='text/markdown',
         author='Rohan Patil',
         author_email="eyeoeternity@gmail.com",
         url="https://github.com/bridgesign/managed",
