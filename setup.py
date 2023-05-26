@@ -7,6 +7,7 @@ if __name__ == '__main__':
         name='tensor-managed',
         version='0.1',
         description='Automated GPU Allocation for PyTorch',
+        long_description=open('README.md').read(),
         author='Rohan Patil',
         author_email="eyeoeternity@gmail.com",
         url="https://github.com/bridgesign/managed",
