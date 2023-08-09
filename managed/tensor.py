@@ -3,7 +3,6 @@ from managed import device_manager
 from ._tensor import _ManagedTensor
 from ._utils import aggregate_tensors
 import torch
-from torch.autograd.graph import Node
 
 FUNC_BLACKLIST = (
     "__get__", "__set__", "__del__",
@@ -34,9 +33,10 @@ FUNC_BLACKLIST = (
     "_base", "_cdata", "_grad", "_grad_fn", "_grad_fn_class",
     "_grad_fn_type", "_grad_is_volatile", "_grad_layout",
     "_grad_requires_grad", "_grad_subgraph", "_grad_version",
+    "size", "shape"
 )
 
-def extract_device(grad_fn: Node) -> torch.device:
+def extract_device(grad_fn) -> torch.device:
     """
     Helper function to extract device from grad_fn
     """
@@ -50,7 +50,7 @@ def extract_device(grad_fn: Node) -> torch.device:
 # TODO: Check if this is the case
 # The delay might be in transfer of data to device
 # TODO: Check if this is the case
-def hook_fn(grad_fn: Node):
+def hook_fn(grad_fn):
     """
     Hook function to be registered on grad_fn
     """
@@ -66,7 +66,7 @@ def hook_fn(grad_fn: Node):
         return grad_list
     return func
 
-def hook_unexplored_graph(grad_funtion: Node, device: torch.device) -> None:
+def hook_unexplored_graph(grad_funtion, device: torch.device) -> None:
     """
     Backward explore the newly created auto-grad graph
     Explored nodes have a device metadata attached to them
@@ -194,5 +194,10 @@ class ManagedTensor(_ManagedTensor):
         else:
             device = device_manager.cuda(self, *args, **kwargs)
         return super().to(device).as_subclass(self.__class__)
+
+    def new_empty(self, *args):
+        ret = torch.empty(0, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
+        ret.__class__ = self.__class__
+        return ret
 
 __all__ = ["ManagedTensor"]
