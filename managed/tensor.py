@@ -194,6 +194,10 @@ class ManagedTensor(_ManagedTensor):
         else:
             device = device_manager.cuda(self, *args, **kwargs)
         return super().to(device).as_subclass(self.__class__)
+    
+    def new_empty(self, *args):
+        ret = torch.empty(0, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
+        return ret.as_subclass(self.__class__)
 
     def new_empty(self, *args):
         ret = torch.empty(0, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
