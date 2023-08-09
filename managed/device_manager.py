@@ -7,6 +7,8 @@ import random
 from ._tensor import _ManagedTensor
 from ._utils import *
 
+from managed import _NO_MANAGED
+
 USE_HEURISTIC = True
 HEUSRISTIC_FUNCTION: Callable[[int], int] = heuristic_size
 
@@ -167,6 +169,8 @@ class DeviceManager:
         """
         Internal function to find a device for the given tensor list.
         """
+        if _NO_MANAGED:
+            return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         self.log(f'Class of tensor list: {[type(t) for t in tensor_list]}')
         self.log(f'Device of tensor list: {[t.device for t in tensor_list]}')
         pinned_device = get_pinned_device(tensor_list)
@@ -297,6 +301,8 @@ class DeviceManager:
             If False, then the device with the least available memory is selected with a higher chance.
             Default: False
         """
+        if _NO_MANAGED:
+            return torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
         if not len(self._cuda_devices):
             return self.cpu_device
         for _ in range(self._retry_limit):

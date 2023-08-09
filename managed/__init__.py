@@ -1,9 +1,13 @@
+import os
+if os.environ.get("NO_MANAGED", "0") == "1":
+    _NO_MANAGED = True
+else:
+    _NO_MANAGED = False
+
 from .device_manager import DeviceManager, USE_HEURISTIC, HEUSRISTIC_FUNCTION
 device_manager = DeviceManager()
 
-import os
-
-if os.environ.get("NO_MANAGED", "0") == "1":
+if _NO_MANAGED:
     import torch
     ManagedTensor = torch.Tensor
     ManagedModule = torch.nn.Module
