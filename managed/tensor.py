@@ -199,9 +199,4 @@ class ManagedTensor(_ManagedTensor):
         ret = torch.empty(0, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
         return ret.as_subclass(self.__class__)
 
-    def new_empty(self, *args):
-        ret = torch.empty(0, dtype=self.dtype, device=self.device, requires_grad=self.requires_grad)
-        ret.__class__ = self.__class__
-        return ret
-
 __all__ = ["ManagedTensor"]
