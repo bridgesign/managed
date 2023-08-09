@@ -33,6 +33,7 @@ FUNC_BLACKLIST = (
     "_base", "_cdata", "_grad", "_grad_fn", "_grad_fn_class",
     "_grad_fn_type", "_grad_is_volatile", "_grad_layout",
     "_grad_requires_grad", "_grad_subgraph", "_grad_version",
+    "size", "shape"
 )
 
 def extract_device(grad_fn) -> torch.device:
